@@ -108,8 +108,8 @@ void g1GimbalDriver::convert(void *buf)
         state.rel.yaw = tempPos->HALL_yaw * G1_SCALE_FACTOR;
         state.rel.roll = tempPos->HALL_roll * G1_SCALE_FACTOR;
         state.rel.pitch = tempPos->HALL_pitch * G1_SCALE_FACTOR;
-        updateGimbalStateCallback(state.abs.roll, state.abs.pitch, state.abs.yaw,
-                                  state.rel.roll, state.rel.pitch, state.rel.yaw,
+        updateGimbalStateCallback(state.rel.roll, state.rel.pitch, state.rel.yaw,
+                                  state.abs.roll, state.abs.pitch, state.abs.yaw,
                                   state.fov.x, state.fov.y);
         mState.unlock();
         break;

@@ -108,8 +108,8 @@ void g2GimbalDriver::convert(void *buf)
     {
     case G2::IAP_COMMAND_BLOCK_END:
         mState.lock();
-        updateGimbalStateCallback(state.abs.roll, state.abs.pitch, state.abs.yaw,
-                                  state.rel.roll, state.rel.pitch, state.rel.yaw,
+        updateGimbalStateCallback(state.rel.roll, state.rel.pitch, state.rel.yaw,
+                                  state.abs.roll, state.abs.pitch, state.abs.yaw,
                                   state.fov.x, state.fov.y);
         mState.unlock();
         break;
