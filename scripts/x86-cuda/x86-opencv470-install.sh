@@ -47,7 +47,11 @@ cp -r ~/opencv_build/opencv_cache_x86-4.7.0/* ~/opencv_build/opencv-4.7.0/.cache
 mkdir build
 cd build
 
-cmake -D CMAKE_BUILD_TYPE=Release -D WITH_CUDA=OFF -D OPENCV_ENABLE_NONFREE=ON -D CMAKE_INSTALL_PREFIX=/usr/local -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib-4.7.0/modules ..
+cmake -D CMAKE_BUILD_TYPE=Release \
+      -D WITH_CUDA=OFF \
+      -D OPENCV_ENABLE_NONFREE=ON \
+      -D CMAKE_INSTALL_PREFIX=/usr/local \
+      -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib-4.7.0/modules ..
 
 make -j2
 sudo make install

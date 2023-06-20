@@ -119,8 +119,8 @@ void Q10fGimbalDriver::convert(void *buf)
         state.rel.yaw = tempPos->rollStatorRotorAngle * Q10F_SCALE_FACTOR_SPEED;
         state.rel.roll = tempPos->rollStatorRotorAngle * Q10F_SCALE_FACTOR_SPEED;
         state.rel.pitch = tempPos->pitchStatorRotorAngle * Q10F_SCALE_FACTOR_SPEED;
-        updateGimbalStateCallback(state.abs.roll, state.abs.pitch, state.abs.yaw,
-                                  state.rel.roll, state.rel.pitch, state.rel.yaw,
+        updateGimbalStateCallback(state.rel.roll, state.rel.pitch, state.rel.yaw,
+                                  state.abs.roll, state.abs.pitch, state.abs.yaw,
                                   state.fov.x, state.fov.y);
         mState.unlock();
 

@@ -60,20 +60,6 @@ public:
     uint32_t takePic(void);
     uint32_t setVideo(const amovGimbal::AMOV_GIMBAL_VIDEO_T newState);
 
-#ifdef AMOV_HOST
-    // iap funtion (内部源码模式提供功能 lib模式下不可见)
-    bool iapGetSoftInfo(std::string &info);
-    bool iapGetHardInfo(std::string &info);
-    bool iapJump(G2::GIMBAL_IAP_STATE_T &state);
-    bool iapFlashErase(G2::GIMBAL_IAP_STATE_T &state);
-    bool iapSendBlockInfo(uint32_t &startAddr, uint32_t &crc32);
-    bool iapSendBlockData(uint8_t offset, uint8_t *data);
-    bool iapFlashWrite(uint32_t &crc32, G2::GIMBAL_IAP_STATE_T &state);
-
-    // 判断是否需要跳转
-    bool iapJumpCheck(std::string &info) { return true; }
-#endif
-
     static amovGimbal::IamovGimbalBase *creat(amovGimbal::IOStreamBase *_IO)
     {
         return new g2GimbalDriver(_IO);
