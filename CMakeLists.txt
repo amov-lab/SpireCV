@@ -237,7 +237,7 @@ elseif(PLATFORM STREQUAL "X86_CPU")
   endif()
 endif()
 
-
+#demo
 add_executable(ArucoDetection samples/demo/aruco_detection.cpp)
 target_link_libraries(ArucoDetection sv_world)
 add_executable(CameraReading samples/demo/camera_reading.cpp)
@@ -260,11 +260,16 @@ add_executable(VideoSaving samples/demo/video_saving.cpp)
 target_link_libraries(VideoSaving sv_world)
 add_executable(VideoStreaming samples/demo/video_streaming.cpp)
 target_link_libraries(VideoStreaming sv_world)
+add_executable(GimbalClickedTracking samples/demo/gimbal_detection_with_clicked_tracking.cpp)
+target_link_libraries(GimbalClickedTracking sv_world)
+add_executable(GimbalLandingMarkerDetection samples/demo/gimbal_landing_marker_detection.cpp)
+target_link_libraries(GimbalLandingMarkerDetection sv_world)
+add_executable(GimbalUdpDetectionInfoSender samples/demo/gimbal_udp_detection_info_sender.cpp)
+target_link_libraries(GimbalUdpDetectionInfoSender sv_world)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/samples/calib)
 add_executable(CameraCalibrarion samples/calib/calibrate_camera_charuco.cpp)
 target_link_libraries(CameraCalibrarion ${OpenCV_LIBS})
-
 
 message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
 if (NOT DEFINED SV_INSTALL_PREFIX)
