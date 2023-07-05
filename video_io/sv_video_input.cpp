@@ -70,6 +70,23 @@ void Camera::openImpl()
     sprintf(pipe, "rtspsrc location=rtsp://%s:%d/H264?W=%d&H=%d&FPS=%d&BR=4000000 latency=100 ! application/x-rtp,media=video ! rtph264depay ! parsebin ! nvv4l2decoder enable-max-performancegst=1 ! nvvidconv ! video/x-raw,format=(string)BGRx ! videoconvert ! appsink sync=false", this->_ip.c_str(), this->_port, this->_width, this->_height, this->_fps);
     this->_cap.open(pipe, cv::CAP_GSTREAMER);
   }
+  else if (this->_type == CameraType::MIPI)
+  {
+    char pipe[512];
+    this->_cap.open(this->_camera_id);
+    if (this->_width <= 0 || this->_height <= 0)
+    {
+      this->_width = 1280;
+      this->_height = 720;
+    }
+    if (this->_fps <= 0)
+    {
+      this->_fps = 30;
+    }
+
+    sprintf(pipe, "nvarguscamerasrc framerate=(fraction)%d/1 ! nvvidconv flip-method=0 ! video/x-raw, width=(int)%d, height=(int)%d, format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR ! appsink",this->_fps,this->_width,this->_height);
+    this->_cap.open(pipe, cv::CAP_GSTREAMER);
+ }
 }
 
 

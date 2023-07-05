@@ -323,7 +323,7 @@ protected:
 };
 
 
-enum class CameraType {NONE, WEBCAM, G1, Q10};
+enum class CameraType {NONE, WEBCAM, G1, Q10, MIPI};
 
 class CameraBase {
 public:

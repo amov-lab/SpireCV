@@ -69,6 +69,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/common_det/cuda
   ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/landing_det/cuda
   ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/tracking/ocv470
+  ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/color_line
   ${CMAKE_CURRENT_SOURCE_DIR}/video_io
   ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/ellipse_det
   ${CMAKE_CURRENT_SOURCE_DIR}/utils
@@ -108,6 +109,7 @@ set(
   include/sv_common_det.h
   include/sv_landing_det.h
   include/sv_tracking.h
+  include/sv_color_line.h
   include/sv_video_input.h
   include/sv_video_output.h
   include/sv_world.h
@@ -148,9 +150,12 @@ set(spirecv_SRCS
   algorithm/common_det/sv_common_det.cpp
   algorithm/landing_det/sv_landing_det.cpp
   algorithm/tracking/sv_tracking.cpp
+  algorithm/color_line/sv_color_line.cpp
 )
 
 file(GLOB ALG_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/tracking/ocv470/*.cpp)
+list(APPEND spirecv_SRCS ${ALG_SRC_FILES})
+file(GLOB ALG_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/color_line/*.cpp)
 list(APPEND spirecv_SRCS ${ALG_SRC_FILES})
 file(GLOB ALG_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/video_io/*.cpp)
 list(APPEND spirecv_SRCS ${ALG_SRC_FILES})
@@ -252,6 +257,8 @@ add_executable(LandingMarkerDetection samples/demo/landing_marker_detection.cpp)
 target_link_libraries(LandingMarkerDetection sv_world)
 add_executable(SingleObjectTracking samples/demo/single_object_tracking.cpp)
 target_link_libraries(SingleObjectTracking sv_world)
+add_executable(ColorLineDetection samples/demo/color_line_detect.cpp)
+target_link_libraries(ColorLineDetection sv_world)
 add_executable(UdpDetectionInfoReceiver samples/demo/udp_detection_info_receiver.cpp)
 target_link_libraries(UdpDetectionInfoReceiver sv_world)
 add_executable(UdpDetectionInfoSender samples/demo/udp_detection_info_sender.cpp)
