@@ -112,12 +112,12 @@
         "use_square_region": false
     },
     "SingleObjectTracker": {
-        "algorithm": "nano",
+        "algorithm": "csrt",
         "backend": 0,
         "target": 0
     },
     "LandingMarkerDetector": {
-        "labels": ["h"],
+        "labels": ["x", "h"],
         "maxCandidates": 5
     },
     "EllipseDetector": {

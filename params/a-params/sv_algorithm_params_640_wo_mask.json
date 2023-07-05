@@ -5,7 +5,7 @@
         "nmsThrs": 0.6,
         "scoreThrs": 0.4,
         "useWidthOrHeight": 1,
-        "withSegmentation": true,
+        "withSegmentation": false,
         "datasetPersonVehicle": {
             "person": [0.5, 1.8],
             "car": [4.1, 1.5],
@@ -112,12 +112,12 @@
         "use_square_region": false
     },
     "SingleObjectTracker": {
-        "algorithm": "nano",
+        "algorithm": "siamrpn",
         "backend": 0,
         "target": 0
     },
     "LandingMarkerDetector": {
-        "labels": ["h"],
+        "labels": ["x", "h"],
         "maxCandidates": 5
     },
     "EllipseDetector": {

@@ -117,7 +117,7 @@
         "target": 0
     },
     "LandingMarkerDetector": {
-        "labels": ["h"],
+        "labels": ["x", "h"],
         "maxCandidates": 5
     },
     "EllipseDetector": {
