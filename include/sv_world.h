@@ -5,6 +5,7 @@
 #include "sv_common_det.h"
 #include "sv_landing_det.h"
 #include "sv_tracking.h"
+#include "sv_color_line.h"
 #include "sv_video_input.h"
 #include "sv_video_output.h"
 

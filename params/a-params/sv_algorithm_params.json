@@ -174,5 +174,12 @@
         "perspectiveRemovePixelPerCell": 4,
         "polygonalApproxAccuracyRate": 0.03,
         "useAruco3Detection": false
+    },
+    "ColorLineDetector": {
+        "line_color": "black",
+        "line_location": 0.5,
+        "line_location_a1": 0.3,
+        "line_location_a2": 0.7
     }
+
 }
