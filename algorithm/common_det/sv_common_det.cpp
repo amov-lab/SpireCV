@@ -14,7 +14,9 @@ namespace sv {
 
 CommonObjectDetector::CommonObjectDetector()
 {
+#ifdef WITH_CUDA
   this->_cuda_impl = new CommonObjectDetectorCUDAImpl;
+#endif
 }
 CommonObjectDetector::~CommonObjectDetector()
 {

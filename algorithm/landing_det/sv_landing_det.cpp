@@ -13,7 +13,9 @@ namespace sv {
 
 LandingMarkerDetector::LandingMarkerDetector()
 {
+#ifdef WITH_CUDA
   this->_cuda_impl = new LandingMarkerDetectorCUDAImpl;
+#endif
 }
 LandingMarkerDetector::~LandingMarkerDetector()
 {

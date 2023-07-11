@@ -22,6 +22,8 @@ else()
     add_definitions(-DPLATFORM_X86_CUDA)
     option(USE_CUDA "BUILD WITH CUDA." ON)
     option(USE_FFMPEG "BUILD WITH FFMPEG." ON)
+  elseif(PLATFORM STREQUAL "X86_INTEL")
+    option(USE_FFMPEG "BUILD WITH FFMPEG." ON)
   else()
     message(FATAL_ERROR "UNSUPPORTED PLATFORM!")
   endif()
@@ -228,7 +230,7 @@ if(USE_CUDA)
   cuda_add_executable(SpireCVSeg samples/SpireCVSeg.cpp ${YOLO_SRCS})
   target_link_libraries(SpireCVSeg sv_world)
 
-elseif(PLATFORM STREQUAL "X86_CPU")
+elseif(PLATFORM STREQUAL "X86_INTEL")
   add_library(sv_world SHARED ${spirecv_SRCS})
   target_link_libraries(
     sv_world ${OpenCV_LIBS} 
@@ -274,6 +276,9 @@ target_link_libraries(GimbalLandingMarkerDetection sv_world)
 add_executable(GimbalUdpDetectionInfoSender samples/demo/gimbal_udp_detection_info_sender.cpp)
 target_link_libraries(GimbalUdpDetectionInfoSender sv_world)
 
+add_executable(EvalFpsOnVideo samples/test/eval_fps_on_video.cpp)
+target_link_libraries(EvalFpsOnVideo sv_world)
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/samples/calib)
 add_executable(CameraCalibrarion samples/calib/calibrate_camera_charuco.cpp)
 target_link_libraries(CameraCalibrarion ${OpenCV_LIBS})
@@ -294,7 +299,7 @@ if(USE_CUDA)
   install(TARGETS SpireCVDet SpireCVSeg
     RUNTIME DESTINATION bin
   )
-elseif(PLATFORM STREQUAL "X86_CPU")
+elseif(PLATFORM STREQUAL "X86_INTEL")
   install(TARGETS sv_world
     LIBRARY DESTINATION lib
   )
@@ -350,7 +355,7 @@ set(SV_LIBRARIES
   @FFMPEG_LIBS@ fmt
 )
 ]])
-elseif(PLATFORM STREQUAL "X86_CPU")
+elseif(PLATFORM STREQUAL "X86_INTEL")
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/build/${PROJECT_NAME}Config.cmake.in [[
 @PACKAGE_INIT@
 find_package(OpenCV 4 REQUIRED)
