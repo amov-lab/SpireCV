@@ -8,7 +8,7 @@ add_definitions(-DAPI_EXPORTS)
 set(CMAKE_BUILD_TYPE "Release")
 
 
-## JETSON, X86_CUDA
+## JETSON, X86_CUDA, X86_INTEL
 message(STATUS "System:${CMAKE_HOST_SYSTEM_PROCESSOR}")
 if(NOT DEFINED PLATFORM)
   message(FATAL_ERROR "PLATFORM NOT SPECIFIED!")
@@ -185,7 +185,7 @@ list(APPEND spirecv_SRCS ${ALG_SRC_FILES})
 endif()
 
 
-if(USE_CUDA)
+if(USE_CUDA)  # PLATFORM_X86_CUDA & PLATFORM_JETSON
   # CUDA
   include_directories(/usr/local/cuda/include)
   link_directories(/usr/local/cuda/lib64)
@@ -197,24 +197,11 @@ if(USE_CUDA)
   target_link_libraries(sv_yoloplugins nvinfer cudart)
   
   cuda_add_library(sv_world SHARED ${spirecv_SRCS})
-  if(USE_GSTREAMER)
-    target_link_libraries(
-      sv_world ${OpenCV_LIBS} 
-      sv_yoloplugins sv_gimbal
-      nvinfer cudart
-      gstrtspserver-1.0
-    )
-  else()
-    target_link_libraries(
-      sv_world ${OpenCV_LIBS} 
-      sv_yoloplugins sv_gimbal
-      nvinfer cudart
-    )
-  endif()
-  
-  if(USE_FFMPEG)
-    target_link_libraries(sv_world ${FFMPEG_LIBS} fmt)
-  endif()
+  target_link_libraries(
+    sv_world ${OpenCV_LIBS} 
+    sv_yoloplugins sv_gimbal
+    nvinfer cudart
+  )
   
   set(
     YOLO_SRCS
@@ -230,18 +217,20 @@ if(USE_CUDA)
   cuda_add_executable(SpireCVSeg samples/SpireCVSeg.cpp ${YOLO_SRCS})
   target_link_libraries(SpireCVSeg sv_world)
 
-elseif(PLATFORM STREQUAL "X86_INTEL")
+elseif(PLATFORM STREQUAL "X86_INTEL")  # Links to Intel-OpenVINO libraries here
   add_library(sv_world SHARED ${spirecv_SRCS})
   target_link_libraries(
     sv_world ${OpenCV_LIBS} 
     sv_gimbal
   )
-  if(USE_GSTREAMER)
-    target_link_libraries(sv_world gstrtspserver-1.0)
-  endif()
-  if(USE_FFMPEG)
-    target_link_libraries(sv_world ${FFMPEG_LIBS} fmt)
-  endif()
+endif()
+
+if(USE_GSTREAMER)
+  target_link_libraries(sv_world gstrtspserver-1.0)
+endif()
+
+if(USE_FFMPEG)
+  target_link_libraries(sv_world ${FFMPEG_LIBS} fmt)
 endif()
 
 #demo
