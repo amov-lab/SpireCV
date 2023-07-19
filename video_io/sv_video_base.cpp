@@ -1110,7 +1110,7 @@ void CameraBase::_run()
 }
 bool CameraBase::read(cv::Mat& image)
 {
-  if (this->_type == CameraType::WEBCAM || this->_type == CameraType::G1)
+  if (this->_type == CameraType::WEBCAM || this->_type == CameraType::G1 || this->_type == CameraType::MIPI)
   {
     int n_try = 0;
     while (n_try < 5000)
