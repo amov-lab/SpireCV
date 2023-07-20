@@ -39,9 +39,8 @@ public:
 
     virtual bool inPutByte(IN uint8_t *byte)
     {
-        if (ser->available() > 0)
+        if (ser->read(byte, 1))
         {
-            ser->read(byte, 1);
             return true;
         }
         return false;
