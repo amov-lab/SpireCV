@@ -39,7 +39,7 @@ public:
 
     virtual bool inPutByte(IN uint8_t *byte)
     {
-        if(ser->read(byte, 1))
+        if (ser->read(byte, 1))
         {
             return true;
         }
