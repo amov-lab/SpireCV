@@ -47,7 +47,9 @@ int main(int argc, char *argv[])
 
       // 打印每个 color_line 的中心位置，cx，cy的值域为[0, 1]，以及cx，cy的像素值
       printf("  Color Line detect Center (cx, cy) = (%.3f, %.3f), in Pixels = ((%d, %d))\n",
-             tgts.targets[i].cx, tgts.targets[i].cy);
+             tgts.targets[i].cx, tgts.targets[i].cy,
+             int(tgts.targets[i].cx * tgts.width),
+             int(tgts.targets[i].cy * tgts.height));
 
       // 打印每个color_line的x_方向反正切值，跟相机视场相关
       printf("  Color Line detect Line-of-sight (ax, ay) = (%.3f, %.3f)\n", tgts.targets[i].los_ax, tgts.targets[i].los_ay);
