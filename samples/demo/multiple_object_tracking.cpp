@@ -7,9 +7,13 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
   // 实例化
+  sv::CommonObjectDetector cod;
+  // 手动导入相机参数，如果使用Amov的G1等吊舱或相机，则可以忽略该步骤，将自动下载相机参数文件
+  cod.loadCameraParams(sv::get_home() + "/SpireCV/calib_webcam_640x480.yaml");
   sv::MultipleObjectTracker mot;
   // 手动导入相机参数，如果使用Amov的G1等吊舱或相机，则可以忽略该步骤，将自动下载相机参数文件
   mot.loadCameraParams(sv::get_home() + "/SpireCV/calib_webcam_640x480.yaml");
+  mot.init(&cod);
   
   // 打开摄像头
   sv::Camera cap;

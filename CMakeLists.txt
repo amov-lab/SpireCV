@@ -52,6 +52,7 @@ if(USE_FFMPEG)
 endif()
 
 
+find_package(Eigen3 REQUIRED)
 add_definitions(-DWITH_OCV470)
 find_package(OpenCV 4.7 REQUIRED)
 message(STATUS "OpenCV library status:")
@@ -60,6 +61,7 @@ message(STATUS "    libraries: ${OpenCV_LIBS}")
 message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
 
 
+include_directories(${EIGEN3_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl/IOs/serial/include
