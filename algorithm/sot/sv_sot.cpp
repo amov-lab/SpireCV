@@ -1,7 +1,7 @@
-#include "sv_tracking.h"
+#include "sv_sot.h"
 #include <cmath>
 #include <fstream>
-#include "tracking_ocv470_impl.h"
+#include "sot_ocv470_impl.h"
 
 
 namespace sv {

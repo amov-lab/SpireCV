@@ -116,6 +116,16 @@
         "backend": 0,
         "target": 0
     },
+    "MultipleObjectTracker": {
+        "algorithm": "sort",
+        "with_reid": false,
+        "reid_input_size": [128, 128],
+        "reid_num_samples": 10,
+        "reid_match_thres": 2.0,
+        "iou_thres": 0.5,
+        "max_age": 10,
+        "min_hits": 3
+    },
     "LandingMarkerDetector": {
         "labels": ["x", "h"],
         "maxCandidates": 5
