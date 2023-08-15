@@ -130,7 +130,7 @@ KalmanFilter::~KalmanFilter()
 pair<Matrix<double, 8, 1>, Matrix<double, 8, 8> > KalmanFilter::initiate(Vector4d &bbox)
 {
     Matrix<double,8,1> mean;
-    mean << bbox(0), bbox(1), bbox(2)/bbox(3), bbox(3), 0, 0, 0, 0;
+    mean << bbox(0), bbox(1), bbox(2) / bbox(3), bbox(3), 0, 0, 0, 0;
     VectorXd stds(8);
     stds << 2 * this->_std_weight_position * mean(3), 2 * this->_std_weight_position * mean(3), 0.01, 2 * this->_std_weight_position * mean(3), \
         10 * this->_std_weight_vel * mean(3), 10 * this->_std_weight_vel * mean(3), 1e-5, 10 * this->_std_weight_vel * mean(3);
@@ -152,7 +152,7 @@ pair<Matrix<double, 8, 1>, Matrix<double, 8, 8> > KalmanFilter::update(Matrix<do
 
     MatrixXd Kalman_gain = covariances * this->_H.transpose() * S.inverse();
     VectorXd measurement(4);
-    measurement << box.x1, box.y1, (box.x2-box.x1)/(box.y2-box.y1), box.y2-box.y1;
+    measurement << box.x1, box.y1, (box.x2-box.x1) / (box.y2-box.y1), box.y2-box.y1;
     Matrix<double, 8, 1> new_mean = mean + Kalman_gain * (measurement - this->_H * mean);
     Matrix<double, 8, 8> new_covariances = (MatrixXd::Identity(8, 8) - Kalman_gain * this->_H) * covariances;
     return make_pair(new_mean, new_covariances);    
@@ -189,14 +189,15 @@ void SORT::update(TargetsInFrame& tgts)
             tracklet.id = ++ this->_next_tracklet_id;
             // cout << tracklet.id << endl;
             tgts.targets[i].tracked_id = this->_next_tracklet_id;
+            tgts.targets[i].has_tid = true;
 
-            tracklet.bbox << box.x1,box.y1,box.x2-box.x1,box.y2-box.y1;  // x,y,w,h
+            tracklet.bbox << box.x1, box.y1, box.x2-box.x1, box.y2-box.y1;  // x,y,w,h
             tracklet.age = 0;
             tracklet.hits = 1;
             tracklet.misses = 0;
             // initate the motion
             pair<Matrix<double, 8, 1>, Matrix<double, 8, 8> > motion = kf.initiate(tracklet.bbox);
-            tracklet.mean=motion.first;
+            tracklet.mean = motion.first;
             tracklet.covariance = motion.second;
 
             this->_tracklets.push_back(tracklet);
@@ -207,6 +208,7 @@ void SORT::update(TargetsInFrame& tgts)
         for (int i=0; i<tgts.targets.size(); i++)
         {
             tgts.targets[i].tracked_id = 0;
+            tgts.targets[i].has_tid = true;
         }
 
         array<int, 100> match_det;
@@ -241,7 +243,7 @@ void SORT::update(TargetsInFrame& tgts)
             int detectionIndex = match.second;
             if (trackletIndex >= 0 && detectionIndex >= 0)
             {
-                if(iouMatrix[match.first][match.second] >= 0)
+                if (iouMatrix[match.first][match.second] >= 0)
                 {
                     sv::Box box;
                     tgts.targets[detectionIndex].getBox(box);
@@ -261,7 +263,7 @@ void SORT::update(TargetsInFrame& tgts)
         // create new tracklets for unmatched detections
         for (int i = 0; i < tgts.targets.size(); i++)
         { 
-            if (match_det[i]==-1)
+            if (match_det[i] == -1)
             {
                 sv::Box box;
                 tgts.targets[i].getBox(box);
@@ -278,6 +280,7 @@ void SORT::update(TargetsInFrame& tgts)
                 tracklet.covariance = new_covariance;
                 
                 tgts.targets[i].tracked_id = this->_next_tracklet_id;
+                tgts.targets[i].has_tid = true;
                 this->_tracklets.push_back(tracklet);
             }
         }
@@ -371,7 +374,7 @@ vector<pair<int, int> > SORT::_hungarian(vector<vector<double> > costMatrix)
     for (int i=0; i<numRows; i++) 
     {
         vector<bool> visited(numCols, false);
-        _augment(costMatrix, i, rowMatch, colMatch, visited);
+        this->_augment(costMatrix, i, rowMatch, colMatch, visited);
     }
     // step4: calculate the matches
     matches.clear();
@@ -383,7 +386,7 @@ vector<pair<int, int> > SORT::_hungarian(vector<vector<double> > costMatrix)
     {
         for (auto& match : matches)
         {
-            swap(match.first,match.second);
+            swap(match.first, match.second);
         }
     }
     return matches;
@@ -397,7 +400,7 @@ bool SORT::_augment(const vector<vector<double> >& costMatrix, int row, vector<i
         if (costMatrix[row][j] == 0 && !visited[j])
         {
             visited[j] = true;
-            if (colMatch[j] == -1 || _augment(costMatrix, colMatch[j], rowMatch, colMatch, visited))
+            if (colMatch[j] == -1 || this->_augment(costMatrix, colMatch[j], rowMatch, colMatch, visited))
             {
                 rowMatch[row] = j;
                 colMatch[j] = row;
