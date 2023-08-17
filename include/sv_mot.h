@@ -55,6 +55,8 @@ public:
     int age;
     int hits;
     int misses;
+    int frame_id=0;
+    bool tentative;
     std::vector<double> features;
     Eigen::Matrix<double, 8, 1> mean;
     Eigen::Matrix<double, 8, 8> covariance;
@@ -93,6 +95,7 @@ private:
     int _min_hits;
     int _next_tracklet_id;
     std::vector <Tracklet> _tracklets;
+    std::vector <Tracklet> _new_tracklets;
 };
 
 
