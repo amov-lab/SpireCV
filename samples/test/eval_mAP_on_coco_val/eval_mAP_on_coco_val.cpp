@@ -8,17 +8,21 @@ using namespace cv;
 
 //extract name
 std::string GetImageFileName(const std::string& imagePath) {
-    size_t lastSlash = imagePath.find_last_of("/\\");
-    if (lastSlash == std::string::npos) {
-        return imagePath;
-    } else {
-        std::string fileName = imagePath.substr(lastSlash + 1);
-        size_t lastDot = fileName.find_last_of(".");
-        if (lastDot != std::string::npos) {
-            return fileName.substr(0, lastDot);
-        }
-        return fileName;
+  size_t lastSlash = imagePath.find_last_of("/\\");
+  if (lastSlash == std::string::npos)
+  {
+    return imagePath;
+  }
+  else
+  {
+    std::string fileName = imagePath.substr(lastSlash + 1);
+    size_t lastDot = fileName.find_last_of(".");
+    if (lastDot != std::string::npos)
+    {
+      return fileName.substr(0, lastDot);
     }
+    return fileName;
+  }
 }
 
 
@@ -60,8 +64,8 @@ int main(int argc, char *argv[])
   }
 
 
-  for (int i = 0; i < val_image.size(); i++) {
-
+  for (int i = 0; i < val_image.size(); i++)
+  {
     //create pred file
     std::string val_image_name = GetImageFileName(val_image[i]);
     std::string filename = folder+"/"+ val_image_name + ".txt";
@@ -84,11 +88,12 @@ int main(int argc, char *argv[])
     // reslusts
     for (int j = 0; j < tgts.targets.size(); j++)
     {
-        sv::Box b;
-        tgts.targets[j].getBox(b);
-        file<<tgts.targets[j].category_id<<" "<<(float)(b.x1+b.x2)/(2*cols)<<" "<<(float)(b.y1+b.y2)/(2*rows)<<" "<<(float)(b.x2-b.x1)/cols<<" "<<(float)(b.y2-b.y1)/rows<<" "<<(float)tgts.targets[j].score<<"\n";
+      sv::Box b;
+      tgts.targets[j].getBox(b);
+      file << tgts.targets[j].category_id << " " << (float)(b.x1+b.x2) / (2*cols) << " " << (float)(b.y1+b.y2) / (2*rows) << \
+        " " << (float)(b.x2-b.x1) / cols << " " << (float)(b.y2-b.y1) / rows << " " << (float)tgts.targets[j].score << "\n";
     }
-    file.close();  
-    }
+    file.close();
+  }
   return 0;
 }

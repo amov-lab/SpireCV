@@ -11,19 +11,19 @@ if __name__ == '__main__':
     # use COCO API to load forecast results and annotations
     cocoGt = COCO(anno_json)
     with open(pred_json,'r') as file:
-      data = json.load(file)
+        data = json.load(file)
     
     # align anno_json with pred_json category_id
     gtCatDicts = {}
     for anns in range(len(cocoGt.getCatIds())):
-      gtCatDicts[anns] = cocoGt.getCatIds()[anns]
+        gtCatDicts[anns] = cocoGt.getCatIds()[anns]
 
     pdCatIds=list(set([d['category_id'] for d in data]))
 
     if not set(pdCatIds).issubset(set(cocoGt.getCatIds())):
         for ins in data:
-           temp = int(gtCatDicts[ins['category_id']])
-           ins['category_id'] = temp
+            temp = int(gtCatDicts[ins['category_id']])
+            ins['category_id'] = temp
 
     # load prediction results
     cocoDt = cocoGt.loadRes(data)

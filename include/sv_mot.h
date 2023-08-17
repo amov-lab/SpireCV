@@ -51,11 +51,11 @@ struct Tracklet
 /* data */
 public:
     Eigen::Vector4d bbox;  // double x, y, w, h;
-    int id=0;
+    int id = 0;
     int age;
     int hits;
     int misses;
-    int frame_id=0;
+    int frame_id = 0;
     bool tentative;
     std::vector<double> features;
     Eigen::Matrix<double, 8, 1> mean;

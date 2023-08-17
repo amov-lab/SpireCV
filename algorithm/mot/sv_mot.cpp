@@ -195,7 +195,7 @@ void SORT::update(TargetsInFrame& tgts)
             tracklet.age = 0;
             tracklet.hits = 1;
             tracklet.misses = 0;
-            tracklet.frame_id=tgts.frame_id;
+            tracklet.frame_id = tgts.frame_id;
             tracklet.tentative = true;
             // initate the motion
             pair<Matrix<double, 8, 1>, Matrix<double, 8, 8> > motion = kf.initiate(tracklet.bbox);
@@ -245,13 +245,13 @@ void SORT::update(TargetsInFrame& tgts)
             int detectionIndex = match.second;
             if (trackletIndex >= 0 && detectionIndex >= 0)
             {
-                if (iouMatrix[match.first][match.second] >= _iou_threshold)//iou_thrshold
+                if (iouMatrix[match.first][match.second] >= _iou_threshold)  // iou_thrshold
                 {
                     sv::Box box;
                     tgts.targets[detectionIndex].getBox(box);
                     this->_tracklets[trackletIndex].age = 0;
                     this->_tracklets[trackletIndex].hits++;
-                    this->_tracklets[trackletIndex].frame_id=tgts.frame_id;
+                    this->_tracklets[trackletIndex].frame_id = tgts.frame_id;
                     this->_tracklets[trackletIndex].bbox << box.x1, box.y1, box.x2-box.x1, box.y2-box.y1;
 
                     auto[mean, covariance] = kf.update(this->_tracklets[trackletIndex].mean, this->_tracklets[trackletIndex].covariance, box);
@@ -264,7 +264,7 @@ void SORT::update(TargetsInFrame& tgts)
             }
         }
         // create new tracklets for unmatched detections
-        for (int i = 0; i < tgts.targets.size(); i++)
+        for (int i=0; i<tgts.targets.size(); i++)
         { 
             if (match_det[i] == -1)
             {
@@ -277,7 +277,7 @@ void SORT::update(TargetsInFrame& tgts)
                 tracklet.age = 0;
                 tracklet.hits = 1;
                 tracklet.misses = 0;
-                tracklet.frame_id=tgts.frame_id;
+                tracklet.frame_id = tgts.frame_id;
                 tracklet.tentative = true;
                 
                 auto[new_mean, new_covariance] = kf.initiate(tracklet.bbox);
@@ -295,7 +295,7 @@ void SORT::update(TargetsInFrame& tgts)
             {
                 tracklet.tentative = false;
             }
-            if ((tgts.frame_id-tracklet.frame_id <= _max_age) || (!tracklet.tentative && tracklet.frame_id==tgts.frame_id))
+            if ((tgts.frame_id-tracklet.frame_id <= _max_age) || (!tracklet.tentative && tracklet.frame_id == tgts.frame_id))
             {
                 _new_tracklets.push_back(tracklet);
             } 
