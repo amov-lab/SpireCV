@@ -275,6 +275,9 @@ target_link_libraries(GimbalUdpDetectionInfoSender sv_world)
 add_executable(EvalFpsOnVideo samples/test/eval_fps_on_video.cpp)
 target_link_libraries(EvalFpsOnVideo sv_world)
 
+add_executable(EvalModelOnCocoVal samples/test/eval_mAP_on_coco_val/eval_mAP_on_coco_val.cpp)
+target_link_libraries(EvalModelOnCocoVal sv_world)
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/samples/calib)
 add_executable(CameraCalibrarion samples/calib/calibrate_camera_charuco.cpp)
 target_link_libraries(CameraCalibrarion ${OpenCV_LIBS})
