@@ -1,3 +1,5 @@
+<img src="https://pic.imgdb.cn/item/64e42356661c6c8e549bab4f.jpg" alt="SpireCV logo" align="right" height="90" />
+
 # SpireCV 智能感知算法库
 
 ## 项目概况
@@ -10,7 +12,7 @@ SpireCV是一个专为**智能无人系统**打造的**边缘实时感知SDK**�
 
 ## 快速入门
 
- - 安装及使用：[SpireCV使用手册](https://www.wolai.com/4qWFM6aZmtpQE6jj7hnNMW)
+ - 安装及使用：[SpireCV使用手册](https://docs.amovlab.com/Spire_CV_Amov/#/)、[SpireCV开发者套件指南](https://docs.amovlab.com/spirecvkit/#/)
     - 需掌握C++语言基础、CMake编译工具基础。
     - 需要掌握OpenCV视觉库基础，了解CUDA、OpenVINO、RKNN和CANN等计算库。
     - 需要了解ROS基本概念及基本操作。
@@ -43,22 +45,19 @@ SpireCV是一个专为**智能无人系统**打造的**边缘实时感知SDK**�
 ## 功能展示
  - **二维码检测**
  
-    <img width="400" src="https://pic.imgdb.cn/item/648bc90a1ddac507cc759c26.gif"/>
+    <img width="400" src="https://pic.imgdb.cn/item/64f700f3661c6c8e54adcb83.gif"/>
  - **起降标志检测**
   
-    <img width="400" src="https://pic.imgdb.cn/item/648bc90a1ddac507cc759e6f.gif"/>
+    <img width="400" src="https://pic.imgdb.cn/item/64f700f0661c6c8e54adc964.gif"/>
  - **椭圆检测**
   
-    <img width="400" src="https://pic.imgdb.cn/item/648bc90c1ddac507cc75a0e2.gif"/>
- - **目标框选跟踪**
+    <img width="400" src="https://pic.imgdb.cn/item/64f700f2661c6c8e54adca9f.gif"/>
+ - **目标点击跟踪（含目标检测、目标跟踪）**
   
-    <img width="400" src="https://pic.imgdb.cn/item/648bc90b1ddac507cc75a003.gif"/>
- - **通用目标检测**
-  
-    <img width="400" src="https://pic.imgdb.cn/item/648bc9151ddac507cc75b26e.gif"/>
+    <img width="400" src="https://pic.imgdb.cn/item/64f700f1661c6c8e54adc9ae.gif"/>
  - **低延迟推流**
   
-    <img width="400" src="https://pic.imgdb.cn/item/648bc9091ddac507cc759b1e.gif"/>
+    <img width="400" src="https://pic.imgdb.cn/item/64f700f2661c6c8e54adcad2.gif"/>
 
 ## 版权声明
 

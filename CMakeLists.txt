@@ -76,6 +76,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/sot/ocv470
   ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/color_line
   ${CMAKE_CURRENT_SOURCE_DIR}/video_io
+    ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/veri/cuda
   ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/ellipse_det
   ${CMAKE_CURRENT_SOURCE_DIR}/utils
 )
@@ -116,6 +117,7 @@ set(
   include/sv_sot.h
   include/sv_mot.h
   include/sv_color_line.h
+  include/sv_veri_det.h
   include/sv_video_input.h
   include/sv_video_output.h
   include/sv_world.h
@@ -155,6 +157,7 @@ set(spirecv_SRCS
   algorithm/ellipse_det/ellipse_detector.cpp
   algorithm/common_det/sv_common_det.cpp
   algorithm/landing_det/sv_landing_det.cpp
+  algorithm/veri/sv_veri_det.cpp
   algorithm/sot/sv_sot.cpp
   algorithm/mot/sv_mot.cpp
   algorithm/color_line/sv_color_line.cpp
@@ -176,6 +179,8 @@ if(USE_CUDA)
   file(GLOB ALG_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/common_det/cuda/yolov7/*.cpp)
   list(APPEND spirecv_SRCS ${ALG_SRC_FILES})
   file(GLOB ALG_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/landing_det/cuda/*.cpp)
+  list(APPEND spirecv_SRCS ${ALG_SRC_FILES})
+  file(GLOB ALG_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/veri/cuda/*.cpp)
   list(APPEND spirecv_SRCS ${ALG_SRC_FILES})
 endif()
 
@@ -263,6 +268,8 @@ add_executable(UdpDetectionInfoSender samples/demo/udp_detection_info_sender.cpp
 target_link_libraries(UdpDetectionInfoSender sv_world)
 add_executable(VideoSaving samples/demo/video_saving.cpp)
 target_link_libraries(VideoSaving sv_world)
+add_executable(VERI samples/demo/veri.cpp)
+target_link_libraries(VERI sv_world)
 add_executable(VideoStreaming samples/demo/video_streaming.cpp)
 target_link_libraries(VideoStreaming sv_world)
 add_executable(GimbalClickedTracking samples/demo/gimbal_detection_with_clicked_tracking.cpp)
@@ -274,6 +281,9 @@ target_link_libraries(GimbalUdpDetectionInfoSender sv_world)
 
 add_executable(EvalFpsOnVideo samples/test/eval_fps_on_video.cpp)
 target_link_libraries(EvalFpsOnVideo sv_world)
+
+add_executable(GimbalTest samples/test/gimbal_test.cpp)
+target_link_libraries(GimbalTest sv_world)
 
 add_executable(EvalModelOnCocoVal samples/test/eval_mAP_on_coco_val/eval_mAP_on_coco_val.cpp)
 target_link_libraries(EvalModelOnCocoVal sv_world)

@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
   // 实例化Aruco检测器类
   sv::ArucoDetector ad;
   // 手动导入相机参数，如果使用Amov的G1等吊舱或相机，则可以忽略该步骤，将自动下载相机参数文件
-  ad.loadCameraParams(sv::get_home() + "/SpireCV/calib_webcam_640x480.yaml");
+  ad.loadCameraParams(sv::get_home() + "/SpireCV/calib_webcam_1280x720.yaml");
 
   sv::UDPServer udp;
   // 实例化OpenCV的Mat类，用于内存单帧图像
