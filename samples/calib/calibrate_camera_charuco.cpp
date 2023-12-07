@@ -36,6 +36,7 @@ the use of this software, even if advised of the possibility of such damage.
 #include <opencv2/imgproc.hpp>
 #include <vector>
 #include <iostream>
+#include <sv_world.h>
 #include "aruco_samples_utility.hpp"
 
 using namespace std;
@@ -58,7 +59,10 @@ const char* keys  =
         "DICT_7X7_100=13, DICT_7X7_250=14, DICT_7X7_1000=15, DICT_ARUCO_ORIGINAL = 16}"
         "{cd       |       | Input file with custom dictionary }"
         "{@outfile |<none> | Output file with calibrated camera parameters }"
-        "{v        |       | Input from video file, if ommited, input comes from camera }"
+        "{imh      |       | Camera Image Height }"
+        "{imw      |       | Camera Image Width }"
+        "{fps      |       | Camera FPS }"
+        "{tp       |       | 1:WEBCAM, 2:V4L2CAM, 3:G1, 4:Q10, 5:MIPI, 6:GX40 }"
         "{ci       | 0     | Camera id if input doesnt come from video (-v) }"
         "{dp       |       | File of marker detector parameters }"
         "{rs       | false | Apply refind strategy }"
@@ -107,26 +111,47 @@ int main(int argc, char *argv[]) {
 
     bool refindStrategy = parser.get<bool>("rs");
     int camId = parser.get<int>("ci");
-    String video;
+    int imW = 800;
+    int imH = 600;
+    int fps = 30;
+    int tp = 1;
 
-    if(parser.has("v")) {
-        video = parser.get<String>("v");
+    if(parser.has("imh")) {
+        imH = parser.get<int>("imh");
     }
+    if(parser.has("imw")) {
+        imW = parser.get<int>("imw");
+    }
+    if(parser.has("fps")) {
+        fps = parser.get<int>("fps");
+    }
+    if(parser.has("tp")) {
+        tp = parser.get<int>("tp");
+    }
+    sv::CameraType c_type = sv::CameraType::WEBCAM;
+    if (2 == tp)
+      c_type = sv::CameraType::V4L2CAM;
+    else if (3 == tp)
+      c_type = sv::CameraType::G1;
+    else if (4 == tp)
+      c_type = sv::CameraType::Q10;
+    else if (5 == tp)
+      c_type = sv::CameraType::MIPI;
+    else if (6 == tp)
+      c_type = sv::CameraType::GX40;
 
     if(!parser.check()) {
         parser.printErrors();
         return 0;
     }
 
-    VideoCapture inputVideo;
-    int waitTime;
-    if(!video.empty()) {
-        inputVideo.open(video);
-        waitTime = 0;
-    } else {
-        inputVideo.open(camId);
-        waitTime = 10;
-    }
+    // VideoCapture inputVideo;
+    sv::Camera inputVideo;
+    inputVideo.setWH(imW, imH);
+    inputVideo.setFps(fps);
+    inputVideo.open(c_type, camId);
+  
+    int waitTime = 10;
 
     aruco::Dictionary dictionary = aruco::getPredefinedDictionary(0);
     if (parser.has("d")) {
@@ -156,9 +181,9 @@ int main(int argc, char *argv[]) {
     vector< Mat > allImgs;
     Size imgSize;
 
-    while(inputVideo.grab()) {
+    while(1) {
         Mat image, imageCopy;
-        inputVideo.retrieve(image);
+        inputVideo.read(image);
 
         vector< int > ids;
         vector< vector< Point2f > > corners, rejected;

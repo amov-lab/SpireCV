@@ -67,8 +67,9 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl/IOs/serial/include
   ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl/driver/src/FIFO
   ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl/driver/src/G1
-  ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl/driver/src/G2
+  ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl/driver/src/AT10
   ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl/driver/src/Q10f
+  ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl/driver/src/GX40
   ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl/driver/src
   ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl
   ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/common_det/cuda
@@ -76,7 +77,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/sot/ocv470
   ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/color_line
   ${CMAKE_CURRENT_SOURCE_DIR}/video_io
-    ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/veri/cuda
+  ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/veri/cuda
   ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/ellipse_det
   ${CMAKE_CURRENT_SOURCE_DIR}/utils
 )
@@ -131,13 +132,15 @@ list(APPEND serial_SRCS gimbal_ctrl/IOs/serial/src/impl/unix.cc)
 list(APPEND serial_SRCS gimbal_ctrl/IOs/serial/src/impl/list_ports/list_ports_linux.cc)
 
 set(driver_SRCS
-  gimbal_ctrl/driver/src/FIFO/Ring_Fifo.cc
+  gimbal_ctrl/driver/src/FIFO/Ring_Fifo.cpp
 )
 file(GLOB DRV_LIB_FILES ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl/driver/src/G1/*.cpp)
 list(APPEND driver_SRCS ${DRV_LIB_FILES})
-file(GLOB DRV_LIB_FILES ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl/driver/src/G2/*.cpp)
+file(GLOB DRV_LIB_FILES ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl/driver/src/AT10/*.cpp)
 list(APPEND driver_SRCS ${DRV_LIB_FILES})
 file(GLOB DRV_LIB_FILES ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl/driver/src/Q10f/*.cpp)
+list(APPEND driver_SRCS ${DRV_LIB_FILES})
+file(GLOB DRV_LIB_FILES ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl/driver/src/GX40/*.cpp)
 list(APPEND driver_SRCS ${DRV_LIB_FILES})
 file(GLOB DRV_LIB_FILES ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl/driver/src/*.cpp)
 list(APPEND driver_SRCS ${DRV_LIB_FILES})
@@ -290,7 +293,7 @@ target_link_libraries(EvalModelOnCocoVal sv_world)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/samples/calib)
 add_executable(CameraCalibrarion samples/calib/calibrate_camera_charuco.cpp)
-target_link_libraries(CameraCalibrarion ${OpenCV_LIBS})
+target_link_libraries(CameraCalibrarion ${OpenCV_LIBS} sv_world)
 
 message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
 if (NOT DEFINED SV_INSTALL_PREFIX)
@@ -309,7 +312,7 @@ if(USE_CUDA)
     RUNTIME DESTINATION bin
   )
 elseif(PLATFORM STREQUAL "X86_INTEL")
-  install(TARGETS sv_world
+  install(TARGETS sv_gimbal sv_world
     LIBRARY DESTINATION lib
   )
 endif()

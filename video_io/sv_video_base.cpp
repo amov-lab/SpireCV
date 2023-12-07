@@ -809,7 +809,7 @@ VideoWriterBase::VideoWriterBase()
 VideoWriterBase::~VideoWriterBase()
 {
   this->release();
-  this->_tt.join();
+  // this->_tt.join();
 }
 cv::Size VideoWriterBase::getSize()
 {
@@ -991,7 +991,7 @@ CameraBase::CameraBase(CameraType type, int id)
 CameraBase::~CameraBase()
 {
   this->_is_running = false;
-  this->_tt.join();
+  // this->_tt.join();
 }
 void CameraBase::setWH(int width, int height)
 {
@@ -1110,7 +1110,7 @@ void CameraBase::_run()
 }
 bool CameraBase::read(cv::Mat& image)
 {
-  if (this->_type == CameraType::WEBCAM || this->_type == CameraType::G1 || this->_type == CameraType::MIPI)
+  if (this->_type != CameraType::NONE)
   {
     int n_try = 0;
     while (n_try < 5000)

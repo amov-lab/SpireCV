@@ -56,6 +56,7 @@ public:
     int hits;
     int misses;
     int frame_id = 0;
+    int category_id;
     bool tentative;
     std::vector<double> features;
     Eigen::Matrix<double, 8, 1> mean;
@@ -70,6 +71,7 @@ public:
     std::pair<Eigen::Matrix<double, 8, 1>, Eigen::Matrix<double, 8, 8> > initiate(Eigen::Vector4d &bbox);
     std::pair<Eigen::Matrix<double, 8, 1>, Eigen::Matrix<double, 8, 8> > update(Eigen::Matrix<double, 8, 1> mean, Eigen::Matrix<double, 8, 8> covariances, Box &box);
     std::pair<Eigen::Matrix<double, 8, 1>, Eigen::Matrix<double, 8, 8> > predict(Eigen::Matrix<double, 8, 1> mean, Eigen::Matrix<double, 8, 8> covariances);
+    std::pair<Eigen::Matrix<double, 4, 1>, Eigen::Matrix<double, 4, 4> > project(Eigen::Matrix<double, 8, 1> mean, Eigen::Matrix<double, 8, 8> covariances);
 private:
     Eigen::Matrix<double, 8, 8> _F;
     Eigen::Matrix<double, 4, 8> _H;
@@ -88,7 +90,10 @@ public:
 private:
     double _iou(Tracklet &tracklet, Box &box);
     std::vector<std::pair<int,int>> _hungarian(std::vector<std::vector<double>> costMatrix);
-    bool _augment(const std::vector<std::vector<double>>& costMatrix, int row, std::vector<int>& rowMatch, std::vector<int>& colMatch, std::vector<bool>& visited);
+    double _findMin(const std::vector<double>& vec);
+    void _subtractMinFromRows(std::vector<std::vector<double>>& costMatrix);
+    void _subtractMinFromCols(std::vector<std::vector<double>>& costMatrix);
+    //bool _augment(const std::vector<std::vector<double>>& costMatrix, int row, std::vector<int>& rowMatch, std::vector<int>& colMatch, std::vector<bool>& visited);
 
     double _iou_threshold;
     int _max_age;

@@ -12,8 +12,9 @@
 namespace sv {
 
 
-CommonObjectDetector::CommonObjectDetector()
+CommonObjectDetector::CommonObjectDetector(bool input_4k)
 {
+  this->_input_4k = input_4k;
 #ifdef WITH_CUDA
   this->_cuda_impl = new CommonObjectDetectorCUDAImpl;
 #endif
@@ -25,7 +26,7 @@ CommonObjectDetector::~CommonObjectDetector()
 bool CommonObjectDetector::setupImpl()
 {
 #ifdef WITH_CUDA
-  return this->_cuda_impl->cudaSetup(this);
+  return this->_cuda_impl->cudaSetup(this, this->_input_4k);
 #endif
   return false;
 }
@@ -51,7 +52,8 @@ void CommonObjectDetector::detectImpl(
     boxes_h_,
     boxes_label_,
     boxes_score_,
-    boxes_seg_
+    boxes_seg_,
+    this->_input_4k
   );
 #endif
 }

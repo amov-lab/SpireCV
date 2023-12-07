@@ -3,11 +3,10 @@
  * @Author: L LC @amov
  * @Date: 2023-04-12 09:12:52
  * @LastEditors: L LC @amov
- * @LastEditTime: 2023-04-18 11:37:42
- * @FilePath: /spirecv-gimbal-sdk/gimbal_ctrl/sv_gimbal.cpp
+ * @LastEditTime: 2023-12-05 17:33:29
+ * @FilePath: /SpireCV/gimbal_ctrl/sv_gimbal.cpp
  */
-#include "amov_gimbal.h"
-#include "amov_gimbal_struct.h"
+#include "amovGimbal/amov_gimbal.h"
 
 #include "sv_gimbal.h"
 #include "sv_gimbal_io.hpp"
@@ -15,6 +14,52 @@
 #include <iostream>
 #include <string>
 #include <thread>
+namespace sv
+{
+    std::map<std::string, void *> Gimbal::IOList;
+    std::mutex Gimbal::IOListMutex;
+
+    typedef struct
+    {
+        std::string name;
+        GimbalLink supportLink;
+    } gimbalTrait;
+
+    std::map<GimbalType, gimbalTrait> gimbaltypeList =
+        {
+            {GimbalType::G1, {"G1", GimbalLink::SERIAL}},
+            {GimbalType::Q10f, {"Q10f", GimbalLink::SERIAL}},
+            {GimbalType::AT10, {"AT10", GimbalLink::SERIAL | GimbalLink::ETHERNET_TCP}},
+            {GimbalType::GX40, {"GX40", GimbalLink::SERIAL | GimbalLink::ETHERNET_TCP | GimbalLink::ETHERNET_UDP}}};
+
+    /**
+     * The function `svGimbalType2Str` converts a `GimbalType` enum value to its corresponding string
+     * representation.
+     *
+     * @return a reference to a string.
+     */
+    std::string &svGimbalType2Str(const GimbalType &type)
+    {
+        std::map<GimbalType, gimbalTrait>::iterator temp = gimbaltypeList.find(type);
+        if (temp != gimbaltypeList.end())
+        {
+            return (temp->second).name;
+        }
+        throw "Error: Unsupported gimbal device type!!!!";
+        exit(-1);
+    }
+
+    GimbalLink &svGimbalTypeFindLinkType(const GimbalType &type)
+    {
+        std::map<GimbalType, gimbalTrait>::iterator temp = gimbaltypeList.find(type);
+        if (temp != gimbaltypeList.end())
+        {
+            return (temp->second).supportLink;
+        }
+        throw "Error: Unsupported gimbal device type!!!!";
+        exit(-1);
+    }
+}
 
 /**
  * This function sets the serial port for a Gimbal object.
@@ -78,15 +123,27 @@ void sv::Gimbal::setNetIp(const std::string &ip)
 }
 
 /**
- * This function sets the network port for a Gimbal object in C++.
+ * The function sets the TCP network port for the Gimbal object.
  *
- * @param port The "port" parameter is an integer value that represents the network port number that
- * the Gimbal object will use for communication. This function sets the value of the "m_net_port"
- * member variable of the Gimbal object to the value passed in as the "port" parameter.
+ * @param port The parameter "port" is an integer that represents the TCP network port number.
  */
-void sv::Gimbal::setNetPort(const int &port)
+void sv::Gimbal::setTcpNetPort(const int &port)
 {
     this->m_net_port = port;
+}
+
+/**
+ * The function sets the UDP network ports for receiving and sending data.
+ *
+ * @param recvPort The recvPort parameter is the port number that the Gimbal object will use to receive
+ * UDP packets.
+ * @param sendPort The sendPort parameter is the port number used for sending data over UDP (User
+ * Datagram Protocol) network communication.
+ */
+void sv::Gimbal::setUdpNetPort(const int &recvPort, const int &sendPort)
+{
+    this->m_net_recv_port = recvPort;
+    this->m_net_send_port = sendPort;
 }
 
 /**
@@ -99,7 +156,85 @@ void sv::Gimbal::setNetPort(const int &port)
 void sv::Gimbal::setStateCallback(sv::PStateInvoke callback)
 {
     amovGimbal::gimbal *pdevTemp = (amovGimbal::gimbal *)this->dev;
-    pdevTemp->dev->setParserCallback(callback);
+    m_callback = callback;
+    pdevTemp->setParserCallback(sv::Gimbal::gimbalUpdataCallback, this);
+}
+
+/**
+ * The function `sv::Gimbal::creatIO` creates an IO object based on the specified gimbal type and link
+ * type, and returns a pointer to the created object.
+ *
+ * @param dev The "dev" parameter is a pointer to an object of type "sv::Gimbal". It is used to access
+ * the member variables of the Gimbal object, such as "m_serial_port", "m_serial_baud_rate",
+ * "m_serial_timeout", etc. These variables store information about
+ *
+ * @return a void pointer.
+ */
+void *sv::Gimbal::creatIO(sv::Gimbal *dev)
+{
+    IOListMutex.lock();
+    std::map<std::string, void *>::iterator list = IOList.find(dev->m_serial_port);
+    std::pair<std::string, void *> key("NULL", nullptr);
+    GimbalLink link = svGimbalTypeFindLinkType(dev->m_gimbal_type);
+
+    if ((dev->m_gimbal_link & svGimbalTypeFindLinkType(dev->m_gimbal_type)) == GimbalLink::NONE)
+    {
+        throw std::runtime_error("gimbal Unsupported linktype !!!");
+    }
+
+    if (list == IOList.end())
+    {
+        if (dev->m_gimbal_link == GimbalLink::SERIAL)
+        {
+            UART *ser;
+            ser = new UART(dev->m_serial_port,
+                           (uint32_t)dev->m_serial_baud_rate,
+                           serial::Timeout::simpleTimeout(dev->m_serial_timeout),
+                           (serial::bytesize_t)dev->m_serial_byte_size,
+                           (serial::parity_t)dev->m_serial_parity,
+                           (serial::stopbits_t)dev->m_serial_stopbits,
+                           (serial::flowcontrol_t)dev->m_serial_flowcontrol);
+            key.first = dev->m_serial_port;
+            key.second = (void *)ser;
+            IOList.insert(key);
+        }
+        else if (dev->m_gimbal_link == sv::GimbalLink::ETHERNET_TCP)
+        {
+            TCPClient *tcp;
+            tcp = new TCPClient(dev->m_net_ip, dev->m_net_port);
+            key.first = dev->m_net_ip;
+            key.second = (void *)tcp;
+            IOList.insert(key);
+        }
+        else if (dev->m_gimbal_link == sv::GimbalLink::ETHERNET_UDP)
+        {
+            UDP *udp;
+            udp = new UDP(dev->m_net_ip, dev->m_net_recv_port, dev->m_net_send_port);
+            key.first = dev->m_net_ip;
+            key.second = (void *)udp;
+            IOList.insert(key);
+        }
+    }
+    else
+    {
+        std::cout << "Error: gimbal IO has opened!!!" << std::endl;
+    }
+    IOListMutex.unlock();
+
+    return key.second;
+}
+
+/**
+ * The function removes a Gimbal device from the IOList.
+ *
+ * @param dev dev is a pointer to an object of type sv::Gimbal.
+ */
+void sv::Gimbal::removeIO(sv::Gimbal *dev)
+{
+    IOListMutex.lock();
+    IOList.erase(dev->m_serial_port);
+
+    IOListMutex.unlock();
 }
 
 /**
@@ -115,53 +250,24 @@ void sv::Gimbal::setStateCallback(sv::PStateInvoke callback)
  */
 bool sv::Gimbal::open(PStateInvoke callback)
 {
-    if (this->m_gimbal_link == GimbalLink::SERIAL)
-    {
-        this->IO = new UART(this->m_serial_port,
-                            (uint32_t)this->m_serial_baud_rate,
-                            serial::Timeout::simpleTimeout(this->m_serial_timeout),
-                            (serial::bytesize_t)this->m_serial_byte_size,
-                            (serial::parity_t)this->m_serial_parity,
-                            (serial::stopbits_t)this->m_serial_stopbits,
-                            (serial::flowcontrol_t)this->m_serial_flowcontrol);
-    }
-    // Subsequent additions
-    else if (this->m_gimbal_link == sv::GimbalLink::ETHERNET_TCP)
-    {
-        return false;
-    }
-    else if (this->m_gimbal_link == sv::GimbalLink::ETHERNET_UDP)
-    {
-        return false;
-    }
-    else
-    {
-        throw "Error: Unsupported communication interface class!!!";
-        return false;
-    }
-    std::string driverName;
-    switch (this->m_gimbal_type)
-    {
-    case sv::GimbalType::G1:
-        driverName = "G1";
-        break;
-    case sv::GimbalType::Q10f:
-        driverName = "Q10f";
-        break;
+    bool ret = false;
 
-    default:
-        throw "Error: Unsupported driver!!!";
-        return false;
-        break;
+    this->IO = creatIO(this);
+
+    if (this->IO != nullptr)
+    {
+        std::string driverName;
+        driverName = sv::svGimbalType2Str(this->m_gimbal_type);
+        this->dev = new amovGimbal::gimbal(driverName, (amovGimbal::IOStreamBase *)this->IO);
+        amovGimbal::gimbal *pdevTemp = (amovGimbal::gimbal *)this->dev;
+        pdevTemp->startStack();
+        m_callback = callback;
+        pdevTemp->parserAuto(sv::Gimbal::gimbalUpdataCallback, this);
+
+        ret = true;
     }
-    this->dev = new amovGimbal::gimbal(driverName, (amovGimbal::IOStreamBase *)this->IO);
 
-    amovGimbal::gimbal *pdevTemp = (amovGimbal::gimbal *)this->dev;
-
-    pdevTemp->dev->startStack();
-    pdevTemp->dev->parserAuto(callback);
-
-    return true;
+    return ret;
 }
 
 /**
@@ -174,7 +280,7 @@ bool sv::Gimbal::open(PStateInvoke callback)
 bool sv::Gimbal::setHome()
 {
     amovGimbal::gimbal *pdevTemp = (amovGimbal::gimbal *)this->dev;
-    if (pdevTemp->dev->setGimabalHome() > 0)
+    if (pdevTemp->setGimabalHome() > 0)
     {
         return true;
     }
@@ -203,7 +309,7 @@ bool sv::Gimbal::setZoom(double x)
         return false;
     }
 
-    if (pdevTemp->dev->setGimbalZoom(amovGimbal::AMOV_GIMBAL_ZOOM_STOP, x) > 0)
+    if (pdevTemp->setGimbalZoom(AMOV_GIMBAL_ZOOM_STOP, x) > 0)
     {
         return true;
     }
@@ -227,7 +333,7 @@ bool sv::Gimbal::setAutoZoom(int state)
 {
     amovGimbal::gimbal *pdevTemp = (amovGimbal::gimbal *)this->dev;
 
-    if (pdevTemp->dev->setGimbalZoom((amovGimbal::AMOV_GIMBAL_ZOOM_T)state, 0.0f) > 0)
+    if (pdevTemp->setGimbalZoom((AMOV_GIMBAL_ZOOM_T)state, 0.0f) > 0)
     {
         return true;
     }
@@ -253,7 +359,7 @@ bool sv::Gimbal::setAutoFocus(int state)
 {
     amovGimbal::gimbal *pdevTemp = (amovGimbal::gimbal *)this->dev;
 
-    if (pdevTemp->dev->setGimbalFocus((amovGimbal::AMOV_GIMBAL_ZOOM_T)state, 0.0f) > 0)
+    if (pdevTemp->setGimbalFocus((AMOV_GIMBAL_ZOOM_T)state, 0.0f) > 0)
     {
         return true;
     }
@@ -273,7 +379,7 @@ bool sv::Gimbal::takePhoto()
 {
     amovGimbal::gimbal *pdevTemp = (amovGimbal::gimbal *)this->dev;
 
-    if (pdevTemp->dev->takePic() > 0)
+    if (pdevTemp->takePic() > 0)
     {
         return true;
     }
@@ -297,21 +403,21 @@ bool sv::Gimbal::takeVideo(int state)
 {
     amovGimbal::gimbal *pdevTemp = (amovGimbal::gimbal *)this->dev;
 
-    amovGimbal::AMOV_GIMBAL_VIDEO_T newState;
+    AMOV_GIMBAL_VIDEO_T newState;
     switch (state)
     {
     case 0:
-        newState = amovGimbal::AMOV_GIMBAL_VIDEO_OFF;
+        newState = AMOV_GIMBAL_VIDEO_OFF;
         break;
     case 1:
-        newState = amovGimbal::AMOV_GIMBAL_VIDEO_TAKE;
+        newState = AMOV_GIMBAL_VIDEO_TAKE;
         break;
     default:
-        newState = amovGimbal::AMOV_GIMBAL_VIDEO_OFF;
+        newState = AMOV_GIMBAL_VIDEO_OFF;
         break;
     }
 
-    if (pdevTemp->dev->setVideo(newState) > 0)
+    if (pdevTemp->setVideo(newState) > 0)
     {
         return true;
     }
@@ -332,13 +438,13 @@ int sv::Gimbal::getVideoState()
 {
     amovGimbal::gimbal *pdevTemp = (amovGimbal::gimbal *)this->dev;
     int ret;
-    amovGimbal::AMOV_GIMBAL_STATE_T state;
-    state = pdevTemp->dev->getGimabalState();
-    if (state.video == amovGimbal::AMOV_GIMBAL_VIDEO_TAKE)
+    AMOV_GIMBAL_STATE_T state;
+    state = pdevTemp->getGimabalState();
+    if (state.video == AMOV_GIMBAL_VIDEO_TAKE)
     {
         ret = 1;
     }
-    else if (state.video == amovGimbal::AMOV_GIMBAL_VIDEO_OFF)
+    else if (state.video == AMOV_GIMBAL_VIDEO_OFF)
     {
         ret = 0;
     }
@@ -366,7 +472,7 @@ void sv::Gimbal::setAngleEuler(double roll, double pitch, double yaw,
 {
     amovGimbal::gimbal *pdevTemp = (amovGimbal::gimbal *)this->dev;
 
-    amovGimbal::AMOV_GIMBAL_POS_T temp;
+    AMOV_GIMBAL_POS_T temp;
 
     if (pitch_rate == 0.0f)
         pitch_rate = 360;
@@ -378,11 +484,11 @@ void sv::Gimbal::setAngleEuler(double roll, double pitch, double yaw,
     temp.pitch = pitch_rate;
     temp.roll = roll_rate;
     temp.yaw = yaw_rate;
-    pdevTemp->dev->setGimabalFollowSpeed(temp);
+    pdevTemp->setGimabalFollowSpeed(temp);
     temp.pitch = pitch;
     temp.roll = roll;
     temp.yaw = yaw;
-    pdevTemp->dev->setGimabalPos(temp);
+    pdevTemp->setGimabalPos(temp);
 }
 
 /**
@@ -397,15 +503,16 @@ void sv::Gimbal::setAngleRateEuler(double roll_rate, double pitch_rate, double y
 {
     amovGimbal::gimbal *pdevTemp = (amovGimbal::gimbal *)this->dev;
 
-    amovGimbal::AMOV_GIMBAL_POS_T temp;
+    AMOV_GIMBAL_POS_T temp;
     temp.pitch = pitch_rate;
     temp.roll = roll_rate;
     temp.yaw = yaw_rate;
-    pdevTemp->dev->setGimabalSpeed(temp);
+    pdevTemp->setGimabalSpeed(temp);
 }
 
 sv::Gimbal::~Gimbal()
 {
+    removeIO(this);
     delete (amovGimbal::gimbal *)this->dev;
     delete (amovGimbal::IOStreamBase *)this->IO;
 }

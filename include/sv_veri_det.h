@@ -8,29 +8,36 @@
 #include <string>
 #include <chrono>
 
-
-namespace sv {
-
-class VeriDetectorCUDAImpl;
-
-class VeriDetector : public LandingMarkerDetectorBase
+namespace sv
 {
-public:
-  VeriDetector();
-  ~VeriDetector();
 
-  void detect(cv::Mat img1_, cv::Mat img2_, TargetsInFrame &tgts_);
+  class VeriDetectorCUDAImpl;
 
-protected:
-  bool setupImpl();
-  void roiCNN(
-    std::vector<cv::Mat>& input_rois_,
-    std::vector<int>& output_labels_
-  );
+  class VeriDetector : public LandingMarkerDetectorBase
+  {
+  public:
+    VeriDetector();
+    ~VeriDetector();
 
-  VeriDetectorCUDAImpl* _cuda_impl;
-};
+    void detect(cv::Mat img_, const cv::Rect &bounding_box_, sv::Target &tgt);
 
+  protected:
+    void _load();
+    bool setupImpl();
+    void roiCNN(
+        std::vector<cv::Mat> &input_rois_,
+        std::vector<float> &output_labels_);
+    void getSubwindow(cv::Mat &dstCrop, cv::Mat &srcImg, int originalSz, int resizeSz);
+
+    std::string vehicle_id;
+    
+      // Save the target bounding box for each frame.
+    std::vector<float> targetSz = {0, 0};  // H and W of bounding box
+    std::vector<float> targetPos = {0, 0}; // center point of bounding box (x, y)
+
+
+    VeriDetectorCUDAImpl *_cuda_impl;
+  };
 
 }
 #endif

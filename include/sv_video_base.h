@@ -90,6 +90,9 @@ public:
   double los_ay;
   //! The angle of the target in the image coordinate system,  (unit: degree) [-180, 180].
   double yaw_a;
+  
+  //! Similarity, Confidence, (0, 1]
+  double sim_score;
 
   //! Whether the height&width of the target can be obtained.
   bool has_hw;
@@ -323,7 +326,7 @@ protected:
 };
 
 
-enum class CameraType {NONE, WEBCAM, G1, Q10, MIPI};
+enum class CameraType {NONE, WEBCAM, V4L2CAM, G1, Q10, MIPI, GX40};
 
 class CameraBase {
 public:

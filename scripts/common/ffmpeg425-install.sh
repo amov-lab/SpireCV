@@ -2,7 +2,7 @@
 
 
 sudo apt install -y \
-build-essential yasm cmake libtool libc6 libc6-dev unzip wget libfmt-dev \
+build-essential yasm cmake libtool libc6 libc6-dev unzip wget libeigen3-dev libfmt-dev \
 libnuma1 libnuma-dev libx264-dev libx265-dev libfaac-dev libssl-dev
 
 root_dir=${HOME}"/SpireCV"

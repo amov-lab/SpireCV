@@ -29,14 +29,13 @@ public:
   bool cudaSetup();
   void cudaRoiCNN(
     std::vector<cv::Mat>& input_rois_,
-    std::vector<int>& output_labels_
+    std::vector<float>& output_labels_
   );
 
 #ifdef WITH_CUDA
   float *_p_data;
   float *_p_prob1;
   float *_p_prob2;
-  float *_p_prob3;
   nvinfer1::IExecutionContext *_trt_context;
   int _input_index;
   int _output_index1;

@@ -1,6 +1,8 @@
 #include "sv_mot.h"
 #include <cmath>
 #include <fstream>
+#include <limits>
+#include <vector>
 #include "gason.h"
 #include "sv_util.h"
 
@@ -116,11 +118,11 @@ KalmanFilter::KalmanFilter()
     this->_F = MatrixXd::Identity(8, 8);
     for (int i=0; i<4; i++)
     {
-        this->_F(i,i+4) = 1;
+        this->_F(i,i+4) = 1.; //1
     }
     this->_H = MatrixXd::Identity(4, 8);
-    this->_std_weight_position = 1. / 20;
-    this->_std_weight_vel = 1. / 160;
+    this->_std_weight_position = 1. / 20; //1./20
+    this->_std_weight_vel = 1. / 160; //1./160
 }
 
 KalmanFilter::~KalmanFilter()
@@ -130,7 +132,9 @@ KalmanFilter::~KalmanFilter()
 pair<Matrix<double, 8, 1>, Matrix<double, 8, 8> > KalmanFilter::initiate(Vector4d &bbox)
 {
     Matrix<double,8,1> mean;
-    mean << bbox(0), bbox(1), bbox(2) / bbox(3), bbox(3), 0, 0, 0, 0;
+    Matrix<double,4,1> zero_vector;
+    zero_vector.setZero();
+    mean << bbox(0), bbox(1), (double)bbox(2) / (double)bbox(3), bbox(3), zero_vector;
     VectorXd stds(8);
     stds << 2 * this->_std_weight_position * mean(3), 2 * this->_std_weight_position * mean(3), 0.01, 2 * this->_std_weight_position * mean(3), \
         10 * this->_std_weight_vel * mean(3), 10 * this->_std_weight_vel * mean(3), 1e-5, 10 * this->_std_weight_vel * mean(3);
@@ -142,31 +146,43 @@ pair<Matrix<double, 8, 1>, Matrix<double, 8, 8> > KalmanFilter::initiate(Vector4
 
 pair<Matrix<double, 8, 1>, Matrix<double, 8, 8> > KalmanFilter::update(Matrix<double, 8, 1> mean, Matrix<double, 8, 8> covariances, sv::Box &box)
 {
-    MatrixXd R;
-    Vector4d stds;
-
-    stds << this->_std_weight_position * mean(3), this->_std_weight_position * mean(3), 0.1, this->_std_weight_position * mean(3);
-    MatrixXd squared = stds.array().square();
-    R = squared.asDiagonal();
-    MatrixXd S = this->_H * covariances * this->_H.transpose() + R;    
-
-    MatrixXd Kalman_gain = covariances * this->_H.transpose() * S.inverse();
     VectorXd measurement(4);
-    measurement << box.x1, box.y1, (box.x2-box.x1) / (box.y2-box.y1), box.y2-box.y1;
-    Matrix<double, 8, 1> new_mean = mean + Kalman_gain * (measurement - this->_H * mean);
-    Matrix<double, 8, 8> new_covariances = (MatrixXd::Identity(8, 8) - Kalman_gain * this->_H) * covariances;
-    return make_pair(new_mean, new_covariances);    
+    double a = (double)(box.x2-box.x1) / (double)(box.y2-box.y1);
+    measurement << box.x1+(box.x2-box.x1)/2, box.y1+(box.y2-box.y1)/2, a, box.y2-box.y1;
+    pair<Matrix<double, 4, 1>, Matrix<double, 4, 4> > projected = project(mean, covariances);
+    Matrix<double, 4, 1> projected_mean = projected.first;
+    Matrix<double, 4, 4> projected_cov = projected.second;
+
+    Eigen::LLT<Eigen::MatrixXd> chol_factor(projected_cov);
+    MatrixXd Kalman_gain = (chol_factor.solve((covariances * this->_H.transpose()).transpose())).transpose();
+    
+    VectorXd innovation = measurement - projected_mean;
+    Matrix<double, 8, 1> new_mean = mean + Kalman_gain *innovation;
+    Matrix<double, 8, 8> new_covariances = covariances - Kalman_gain * projected_cov * Kalman_gain.transpose();
+
+    return make_pair(new_mean, new_covariances);
 }
 
+pair<Matrix<double, 4, 1>, Matrix<double, 4, 4> > KalmanFilter::project(Matrix<double, 8, 1> mean, Matrix<double, 8, 8> covariances)
+{
+    VectorXd stds(4);
+    stds << this->_std_weight_position * mean(3), this->_std_weight_position * mean(3), 0.1, this->_std_weight_position * mean(3); 
+    MatrixXd squared = stds.array().square();
+    MatrixXd R = squared.asDiagonal();
+
+    Matrix<double, 4, 1>  pro_mean = this->_H * mean;
+    Matrix<double, 4, 4>  pro_covariances = this->_H * covariances * this->_H.transpose() + R;
+    return make_pair(pro_mean, pro_covariances);
+}
 pair<Matrix<double, 8, 1>, Matrix<double, 8, 8> > KalmanFilter::predict(Matrix<double, 8, 1> mean, Matrix<double, 8, 8> covariances)
 {
     VectorXd stds(8);
-    stds << this->_std_weight_position * mean(3), this->_std_weight_position * mean(3), 0.01, this->_std_weight_position * mean(3), \
-        this->_std_weight_vel * mean(3), this->_std_weight_vel * mean(3), 1e-5, this->_std_weight_vel * mean(3);
+    stds << this->_std_weight_position * mean(3), this->_std_weight_position * mean(3), 1e-2, this->_std_weight_position * mean(3), \
+        this->_std_weight_vel * mean(3), this->_std_weight_vel * mean(3), 1e-5, this->_std_weight_vel * mean(3); // a = 0.01
     MatrixXd squared = stds.array().square();
     MatrixXd Q = squared.asDiagonal();
     Matrix<double, 8, 1> pre_mean = this->_F * mean;
-    Matrix<double, 8, 8> pre_cov = this->_F * covariances * this->_F.transpose() + Q;
+    Matrix<double, 8, 8> pre_cov = this->_F * covariances * this->_F.transpose()+Q;//+Q
     return make_pair(pre_mean, pre_cov);
 }
 
@@ -178,7 +194,7 @@ SORT::~SORT()
 void SORT::update(TargetsInFrame& tgts)
 {
     sv::KalmanFilter kf;
-    if (! this->_tracklets.size())
+    if (! this->_tracklets.size() || tgts.targets.size() == 0)
     {
         Vector4d bbox;
         for (int i=0; i<tgts.targets.size(); i++)
@@ -187,34 +203,36 @@ void SORT::update(TargetsInFrame& tgts)
             tgts.targets[i].getBox(box);		
             Tracklet tracklet;
             tracklet.id = ++ this->_next_tracklet_id;
-            // cout << tracklet.id << endl;
             tgts.targets[i].tracked_id = this->_next_tracklet_id;
             tgts.targets[i].has_tid = true;
 
-            tracklet.bbox << box.x1, box.y1, box.x2-box.x1, box.y2-box.y1;  // x,y,w,h
+            tracklet.bbox << box.x1+(box.x2-box.x1)/2, box.y1+(box.y2-box.y1)/2, box.x2-box.x1, box.y2-box.y1;  // x,y,w,h; center(x,y)
+            
             tracklet.age = 0;
             tracklet.hits = 1;
             tracklet.misses = 0;
             tracklet.frame_id = tgts.frame_id;
+            tracklet.category_id = tgts.targets[i].category_id;
             tracklet.tentative = true;
+            
             // initate the motion
             pair<Matrix<double, 8, 1>, Matrix<double, 8, 8> > motion = kf.initiate(tracklet.bbox);
             tracklet.mean = motion.first;
             tracklet.covariance = motion.second;
-
+            
             this->_tracklets.push_back(tracklet);
         }
     }
     else
     {
+        // cout << "frame id:" << tgts.frame_id << endl;
         for (int i=0; i<tgts.targets.size(); i++)
         {
             tgts.targets[i].tracked_id = 0;
             tgts.targets[i].has_tid = true;
         }
 
-        array<int, 100> match_det;
-        match_det.fill(-1);
+        vector<int> match_det(tgts.targets.size(), -1);
         // predict the next state of each tracklet
         for (auto& tracklet : this->_tracklets)
         {
@@ -226,8 +244,6 @@ void SORT::update(TargetsInFrame& tgts)
         }
         
         // Match the detections to the existing tracklets 
-        // cout << "the num of targets: " << tgts.targets.size() << endl;
-        // cout << "the num of tracklets: " << this->_tracklets.size() << endl;
         vector<vector<double> > iouMatrix(this->_tracklets.size(), vector<double> (tgts.targets.size(), 0));
         for (int i=0; i<this->_tracklets.size(); i++)
         {
@@ -238,6 +254,7 @@ void SORT::update(TargetsInFrame& tgts)
                 iouMatrix[i][j] = this->_iou(this->_tracklets[i], box);
             }
         }
+        
         vector<pair<int, int> > matches = this->_hungarian(iouMatrix);
         for (auto& match : matches)
         {
@@ -245,50 +262,58 @@ void SORT::update(TargetsInFrame& tgts)
             int detectionIndex = match.second;
             if (trackletIndex >= 0 && detectionIndex >= 0)
             {
-                if (iouMatrix[match.first][match.second] >= _iou_threshold)  // iou_thrshold
+                if (iouMatrix[match.first][match.second] <= 1-_iou_threshold)  // iou_thrshold
                 {
                     sv::Box box;
                     tgts.targets[detectionIndex].getBox(box);
                     this->_tracklets[trackletIndex].age = 0;
                     this->_tracklets[trackletIndex].hits++;
                     this->_tracklets[trackletIndex].frame_id = tgts.frame_id;
-                    this->_tracklets[trackletIndex].bbox << box.x1, box.y1, box.x2-box.x1, box.y2-box.y1;
-
-                    auto[mean, covariance] = kf.update(this->_tracklets[trackletIndex].mean, this->_tracklets[trackletIndex].covariance, box);
-                    this->_tracklets[trackletIndex].mean = mean;
-                    this->_tracklets[trackletIndex].covariance = covariance;
-
+                    this->_tracklets[trackletIndex].bbox << box.x1+(box.x2-box.x1)/2, box.y1+(box.y2-box.y1)/2, box.x2-box.x1, box.y2-box.y1;
                     tgts.targets[detectionIndex].tracked_id = this->_tracklets[trackletIndex].id;
-                    match_det[detectionIndex] = detectionIndex;
+                    match_det[detectionIndex] = trackletIndex;
                 }
             }
         }
-        // create new tracklets for unmatched detections
+        std::vector <vector<double>> ().swap(iouMatrix);
         for (int i=0; i<tgts.targets.size(); i++)
         { 
+            // cout << "match_det: index: " << i << " value: " << match_det[i] << endl;
             if (match_det[i] == -1)
             {
+                // cout << "create new tracklet." << endl;
                 sv::Box box;
                 tgts.targets[i].getBox(box);
                 Tracklet tracklet;
                 tracklet.id = ++ this->_next_tracklet_id;
-                tracklet.bbox << box.x1, box.y1, box.x2-box.x1, box.y2-box.y1;
-
+                tracklet.bbox << box.x1+(box.x2-box.x1)/2, (double)(box.y1+(box.y2-box.y1)/2), box.x2-box.x1, box.y2-box.y1;
                 tracklet.age = 0;
                 tracklet.hits = 1;
                 tracklet.misses = 0;
                 tracklet.frame_id = tgts.frame_id;
+                tracklet.category_id = tgts.targets[i].category_id;
                 tracklet.tentative = true;
                 
-                auto[new_mean, new_covariance] = kf.initiate(tracklet.bbox);
-                tracklet.mean = new_mean;
-                tracklet.covariance = new_covariance;
-                
+                pair<Matrix<double, 8, 1>, Matrix<double, 8, 8> > new_motion = kf.initiate(tracklet.bbox);
+                tracklet.mean = new_motion.first;
+                tracklet.covariance = new_motion.second;
+
                 tgts.targets[i].tracked_id = this->_next_tracklet_id;
                 tgts.targets[i].has_tid = true;
                 this->_tracklets.push_back(tracklet);
             }
+            else
+            {
+                sv::Box box;
+                int track_id = match_det[i];
+                tgts.targets[i].getBox(box);
+                pair<Matrix<double, 8, 1>, Matrix<double, 8, 8> > updated = kf.update(this->_tracklets[track_id].mean, this->_tracklets[track_id].covariance, box);
+                this->_tracklets[track_id].mean = updated.first;
+                this->_tracklets[track_id].covariance = updated.second;
+            }
         }
+        
+        //sift tracklets
         for (auto& tracklet : this->_tracklets)
         {
             if (tracklet.hits >= _min_hits)
@@ -312,15 +337,16 @@ vector<Tracklet> SORT::getTracklets() const
 
 double SORT::_iou(Tracklet& tracklet, sv::Box& box)
 {
-    double trackletX1 = tracklet.bbox(0);
-    double trackletY1 = tracklet.bbox(1);
-    double trackletX2 = tracklet.bbox(0) + tracklet.bbox(2);
-    double trackletY2 = tracklet.bbox(1) + tracklet.bbox(3);
-
+    double trackletX1 = tracklet.bbox(0)-tracklet.bbox(2)/2;
+    double trackletY1 = tracklet.bbox(1)-tracklet.bbox(3)/2;
+    double trackletX2 = tracklet.bbox(0) + tracklet.bbox(2)/2;
+    double trackletY2 = tracklet.bbox(1) + tracklet.bbox(3)/2;
+    
     double detectionX1 = box.x1;
     double detectionY1 = box.y1;
     double detectionX2 = box.x2;
     double detectionY2 = box.y2;
+
     double intersectionX1 = max(trackletX1, detectionX1);
     double intersectionY1 = max(trackletY1, detectionY1);
     double intersectionX2 = min(trackletX2, detectionX2);
@@ -339,19 +365,55 @@ double SORT::_iou(Tracklet& tracklet, sv::Box& box)
     return iou;
 }
 
+// Function to find the minimum element in a vector
+double SORT::_findMin(const std::vector<double>& vec) {
+    double minVal = std::numeric_limits<double>::max();
+    for (double val : vec) {
+        if (val < minVal) {
+            minVal = val;
+        }
+    }
+    return minVal;
+}
+
+// Function to subtract the minimum value from each row of the cost matrix
+void SORT::_subtractMinFromRows(std::vector<std::vector<double>>& costMatrix) {
+    for (auto& row : costMatrix) {
+        double minVal = _findMin(row);
+        for (double& val : row) {
+            val -= minVal;
+        }
+    }
+}
+
+// Function to subtract the minimum value from each column of the cost matrix
+void SORT::_subtractMinFromCols(std::vector<std::vector<double>>& costMatrix) {
+    for (size_t col = 0; col < costMatrix[0].size(); ++col) {
+        double minVal = std::numeric_limits<double>::max();
+        for (size_t row = 0; row < costMatrix.size(); ++row) {
+            if (costMatrix[row][col] < minVal) {
+                minVal = costMatrix[row][col];
+            }
+        }
+        for (size_t row = 0; row < costMatrix.size(); ++row) {
+            costMatrix[row][col] -= minVal;
+        }
+    }
+}
+
+// Function to find a matching using the Hungarian algorithm
 vector<pair<int, int> > SORT::_hungarian(vector<vector<double> > costMatrix)
 {
-    int numRows = costMatrix.size();
-    int numCols = costMatrix[0].size();
+    size_t numRows = costMatrix.size();
+    size_t numCols = costMatrix[0].size();
 
+    //transpose the matrix if necessary
     const bool transposed = numCols > numRows;
-    // transpose the matrix if necessary
-    if (transposed)
-    {
-        vector<vector<double> > transposedMatrix(numCols, vector<double>(numRows));
-        for (int i=0; i<numRows; i++)
+    if (transposed) {
+        vector<vector<double>> transposedMatrix(numCols, vector<double>(numRows));
+        for (int i = 0; i < numRows; i++)
         {
-            for (int j=0; j<numCols; j++)
+            for (int j = 0; j < numCols; j++)
             {
                 transposedMatrix[j][i] = costMatrix[i][j];
             }
@@ -359,76 +421,58 @@ vector<pair<int, int> > SORT::_hungarian(vector<vector<double> > costMatrix)
         costMatrix = transposedMatrix;
         swap(numRows, numCols);
     }
-    vector<double>rowMin(numRows, numeric_limits<double>::infinity());
-    vector<double>colMin(numCols, numeric_limits<double>::infinity());
-    vector<int>rowMatch(numRows, -1);
-    vector<int>colMatch(numCols, -1);
-    vector<pair<int, int> > matches;
-    // step1: Subtract the row minimums from each row
-    for (int i=0; i<numRows; i++)
-    {
-        for (int j=0; j<numCols; j++)
-        {
-            rowMin[i] = min(rowMin[i], costMatrix[i][j]);
-        }
-        for (int j=0; j<numCols; j++)
-        {
-            costMatrix[i][j] -= rowMin[i];
-        }
-    }
-    // step2: substract the colcum minimums from each column
-    for (int j=0; j<numCols; j++)
-    {
-        for (int i=0; i<numRows; i++)
-        {
-            colMin[j] = min(colMin[j], costMatrix[i][j]);
-        }
-        for (int i=0; i<numRows; i++)
-        {
-            costMatrix[i][j] -= colMin[j];
-        }
-    }
-    // step3: find a maximal matching
-    for (int i=0; i<numRows; i++) 
-    {
-        vector<bool> visited(numCols, false);
-        this->_augment(costMatrix, i, rowMatch, colMatch, visited);
-    }
-    // step4: calculate the matches
-    matches.clear();
-    for (int j=0; j<numCols; j++)
-    {
-        matches.push_back(make_pair(colMatch[j], j));
-    }
-    if (transposed)
-    {
-        for (auto& match : matches)
-        {
-            swap(match.first, match.second);
-        }
-    }
-    return matches;
-}
+    // Determine the larger dimension for matching
+    size_t maxDim = std::max(numRows, numCols);
 
-bool SORT::_augment(const vector<vector<double> >& costMatrix, int row, vector<int>& rowMatch, vector<int>& colMatch, vector<bool>& visited) 
-{
-    int numCols = costMatrix[0].size();
-    for (int j=0; j<numCols; j++)
-    {
-        if (costMatrix[row][j] == 0 && !visited[j])
-        {
-            visited[j] = true;
-            if (colMatch[j] == -1 || this->_augment(costMatrix, colMatch[j], rowMatch, colMatch, visited))
-            {
-                rowMatch[row] = j;
-                colMatch[j] = row;
-                return true;
+    // Create a square cost matrix by padding with zeros if necessary
+    std::vector<std::vector<double>> squareMatrix(maxDim, std::vector<double>(maxDim, 0.0));
+    for (size_t row = 0; row < numRows; ++row) {
+        for (size_t col = 0; col < numCols; ++col) {
+            squareMatrix[row][col] = costMatrix[row][col];
+        }
+    }
+
+    // Subtract the minimum value from each row and column
+    _subtractMinFromRows(squareMatrix);
+    _subtractMinFromCols(squareMatrix);
+
+    // Initialize the assignment vectors with -1 values
+    std::vector<int> rowAssignment(maxDim, -1);
+    std::vector<int> colAssignment(maxDim, -1);
+
+    // Perform the matching
+    for (size_t row = 0; row < maxDim; ++row) {
+        std::vector<bool> visitedCols(maxDim, false);
+        for (size_t col = 0; col < maxDim; ++col) {
+            if (squareMatrix[row][col] == 0 && colAssignment[col] == -1) {
+                rowAssignment[row] = col;
+                colAssignment[col] = row;
+                break;
             }
         }
     }
-    return false;
-}
 
-
+    // Convert the assignment vectors to pair<int, int> format
+    std::vector<std::pair<int, int>> assignmentPairs;
+    for (size_t row = 0; row < numRows; ++row) {
+        int col = rowAssignment[row];
+        //if (col != -1) {
+          //  assignmentPairs.emplace_back(row, col);
+       // }
+        if (col != -1) {
+            if (col >= numCols) {
+                col = -1;
+            }
+            assignmentPairs.emplace_back(row, col);
+        }
+    }
+    if (transposed) {
+        for (auto& assignment : assignmentPairs)
+        {
+            swap(assignment.first, assignment.second);
+        }
+    }
+    return assignmentPairs;
+    }
 }
 

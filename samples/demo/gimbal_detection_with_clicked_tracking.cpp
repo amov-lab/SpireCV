@@ -77,10 +77,10 @@ int main(int argc, char *argv[])
   // 实例化 框选目标跟踪类
   sv::SingleObjectTracker sot;
   // 手动导入相机参数，如果使用Amov的G1等吊舱或相机，则可以忽略该步骤，将自动下载相机参数文件
-  sot.loadCameraParams(sv::get_home() + "/SpireCV/calib_webcam_640x480.yaml");
+  sot.loadCameraParams(sv::get_home() + "/SpireCV/calib_webcam_1280x720.yaml");
 
   sv::CommonObjectDetector cod;
-  cod.loadCameraParams(sv::get_home() + "/SpireCV/calib_webcam_640x480.yaml");
+  cod.loadCameraParams(sv::get_home() + "/SpireCV/calib_webcam_1280x720.yaml");
 
   // 实例化OpenCV的Mat类，用于内存单帧图像
   cv::Mat img;

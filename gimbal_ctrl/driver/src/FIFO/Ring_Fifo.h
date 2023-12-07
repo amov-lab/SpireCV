@@ -3,45 +3,47 @@
  * @Author         : Aiyangsky
  * @Date           : 2022-08-26 21:42:02
  * @LastEditors: L LC @amov
- * @LastEditTime: 2023-03-03 16:12:37
- * @FilePath: \host\gimbal-sdk-multi-platform\src\FIFO\Ring_Fifo.h
+ * @LastEditTime: 2023-11-28 11:47:39
+ * @FilePath: /SpireCV/gimbal_ctrl/driver/src/FIFO/Ring_Fifo.h
  */
 
 #ifndef RING_FIFO_H
 #define RING_FIFO_H
 
-#include "stdbool.h"
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <iostream>
 
-#ifdef __cplusplus
-extern "C"
+class fifoRing
 {
-#endif
+private:
+    unsigned char *start;
+    unsigned char *in;
+    unsigned char *out;
+    unsigned char *end;
 
-#define LOCK()
-#define UNLOCK()
+    unsigned short currNumber;
+    unsigned short maxNumber;
+    unsigned short cellSize;
 
-    typedef struct
+    std::mutex fifoMutex;
+    std::condition_variable_any notEmpty;
+
+public:
+    fifoRing(unsigned short _cellSize, unsigned int _cellNum);
+    ~fifoRing()
     {
-        unsigned char *start;
-        unsigned char *in;
-        unsigned char *out;
-        unsigned char *end;
+        if (start != nullptr)
+        {
+            free(start);
+        }
+    }
 
-        unsigned short curr_number;
-        unsigned short max_number;
-        unsigned short cell_size;
-    } RING_FIFO_CB_T;
-
-    void Ring_Fifo_init(RING_FIFO_CB_T *fifo, unsigned short cell_size,
-                        unsigned char *buffer, unsigned int buffer_lenght);
-    bool Ring_Fifo_in_cell(RING_FIFO_CB_T *fifo, void *data);
-    unsigned short Ring_Fifo_in_cells(RING_FIFO_CB_T *fifo, void *data, unsigned short number);
-    bool Ring_Fifo_out_cell(RING_FIFO_CB_T *fifo, void *data);
-    unsigned short Ring_Fifo_out_cells(RING_FIFO_CB_T *fifo, void *data, unsigned short number);
-
-
-#ifdef __cplusplus
-}
-#endif
+    bool inCell(void *data);
+    unsigned short inCells(void *data, unsigned short number);
+    bool outCell(void *data);
+    unsigned short outCells(void *data, unsigned short number);
+};
 
 #endif

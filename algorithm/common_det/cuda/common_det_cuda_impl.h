@@ -26,7 +26,7 @@ public:
   CommonObjectDetectorCUDAImpl();
   ~CommonObjectDetectorCUDAImpl();
 
-  bool cudaSetup(CommonObjectDetectorBase* base_);
+  bool cudaSetup(CommonObjectDetectorBase* base_, bool input_4k_);
   void cudaDetect(
     CommonObjectDetectorBase* base_,
     cv::Mat img_,
@@ -36,12 +36,13 @@ public:
     std::vector<float>& boxes_h_,
     std::vector<int>& boxes_label_,
     std::vector<float>& boxes_score_,
-    std::vector<cv::Mat>& boxes_seg_
+    std::vector<cv::Mat>& boxes_seg_,
+    bool input_4k_
   );
 
 #ifdef WITH_CUDA
-  void _prepare_buffers_seg(int input_h, int input_w);
-  void _prepare_buffers(int input_h, int input_w);
+  void _prepare_buffers_seg(int input_h, int input_w, int batchsize);
+  void _prepare_buffers(int input_h, int input_w, int batchsize);
   nvinfer1::IExecutionContext* _context;
   nvinfer1::IRuntime* _runtime;
   nvinfer1::ICudaEngine* _engine;

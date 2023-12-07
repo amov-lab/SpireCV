@@ -3,13 +3,17 @@
  * @Author: jario-jin @amov
  * @Date: 2023-04-12 09:12:52
  * @LastEditors: L LC @amov
- * @LastEditTime: 2023-04-18 11:49:27
- * @FilePath: /spirecv-gimbal-sdk/include/sv_gimbal.h
+ * @LastEditTime: 2023-12-05 17:25:40
+ * @FilePath: /SpireCV/include/sv_gimbal.h
  */
 #ifndef __SV_GIMBAL__
 #define __SV_GIMBAL__
 
 #include <string>
+#include <map>
+#include <iterator>
+#include <thread>
+#include <mutex>
 
 namespace sv
 {
@@ -21,14 +25,27 @@ namespace sv
   enum class GimbalType
   {
     G1,
-    Q10f
+    Q10f,
+    AT10,
+    GX40,
   };
-  enum class GimbalLink
+  enum class GimbalLink : int
   {
-    SERIAL,
-    ETHERNET_TCP,
-    ETHERNET_UDP
+    NONE = 0x00,
+    SERIAL = 0x01,
+    ETHERNET_TCP = 0x02,
+    ETHERNET_UDP = 0x04,
   };
+
+  constexpr GimbalLink operator|(GimbalLink a, GimbalLink b)
+  {
+    return static_cast<GimbalLink>(static_cast<int>(a) | static_cast<int>(b));
+  }
+
+  constexpr GimbalLink operator&(GimbalLink a, GimbalLink b)
+  {
+    return static_cast<GimbalLink>(static_cast<int>(a) & static_cast<int>(b));
+  }
 
   enum class GimablSerialByteSize
   {
@@ -78,6 +95,7 @@ namespace sv
     // Device pointers
     void *dev;
     void *IO;
+    PStateInvoke m_callback;
 
     // Generic serial interface parameters list & default parameters
     std::string m_serial_port = "/dev/ttyUSB0";
@@ -89,11 +107,25 @@ namespace sv
     int m_serial_timeout = 500;
 
     // Ethernet interface parameters list & default parameters
-    std::string m_net_ip = "192.168.2.64";
-    int m_net_port = 9090;
+    std::string m_net_ip = "192.168.144.121";
+    int m_net_port = 2332;
+    int m_net_recv_port = 2338;
+    int m_net_send_port = 2337;
 
     GimbalType m_gimbal_type;
     GimbalLink m_gimbal_link;
+
+    static std::map<std::string, void *> IOList;
+    static std::mutex IOListMutex;
+    static void *creatIO(Gimbal *dev);
+    static void removeIO(Gimbal *dev);
+
+    static void gimbalUpdataCallback(double frameAngleRoll, double frameAnglePitch, double frameAngleYaw,
+                                     double imuAngleRoll, double imuAnglePitch, double imuAngleYaw,
+                                     double fovX, double fovY, void *handle)
+    {
+      ((Gimbal *)(handle))->m_callback(frameAngleRoll, frameAnglePitch, frameAngleYaw, imuAngleRoll, imuAnglePitch, imuAngleYaw, fovX, fovY);
+    }
 
   public:
     //! Constructor
@@ -116,7 +148,10 @@ namespace sv
 
     // set Ethernet interface parameters
     void setNetIp(const std::string &ip);
-    void setNetPort(const int &port);
+    // set tcp port
+    void setTcpNetPort(const int &port);
+    // set udp port
+    void setUdpNetPort(const int &recvPort, const int &sendPort);
 
     // Create a device instance
     void setStateCallback(PStateInvoke callback);

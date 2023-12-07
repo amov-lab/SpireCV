@@ -20,9 +20,18 @@ fi
 sudo apt update
 sudo apt install -y build-essential
 sudo apt install -y cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev
+
+sudo add-apt-repository "deb http://security.ubuntu.com/ubuntu xenial-security main"
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3B4FE6ACC0B21F32
+sudo apt update
 sudo apt install -y libjasper1 libjasper-dev
+
 sudo apt install -y python3-dev python3-numpy libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev
 sudo apt install -y libdc1394-22-dev
+sudo apt install -y libcurl4 build-essential pkg-config cmake libopenblas-dev libeigen3-dev \
+                    libtbb-dev libavcodec-dev libavformat-dev libgstreamer-plugins-base1.0-dev \
+                    libgstreamer1.0-dev libswscale-dev libgtk-3-dev libpng-dev libjpeg-dev \
+                    libcanberra-gtk-module libcanberra-gtk3-module
 
 
 echo "\033[32m[INFO]:\033[0m unzip opencv-4.7.0.zip ..."

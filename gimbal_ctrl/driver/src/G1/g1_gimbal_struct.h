@@ -3,8 +3,8 @@
  * @Author: L LC @amov
  * @Date: 2022-10-27 18:10:07
  * @LastEditors: L LC @amov
- * @LastEditTime: 2023-03-17 18:12:57
- * @FilePath: \gimbal-sdk-multi-platform\src\G1\g1_gimbal_struct.h
+ * @LastEditTime: 2023-12-05 16:29:48
+ * @FilePath: /SpireCV/gimbal_ctrl/driver/src/G1/g1_gimbal_struct.h
  */
 #ifndef G1_GIMBAL_STRUCT_H
 #define G1_GIMBAL_STRUCT_H
@@ -20,6 +20,7 @@ namespace G1
 
     typedef enum
     {
+        GIMBAL_CMD_SET_STATE = 0X01,
         GIMBAL_CMD_SET_POS = 0X85,
         GIMBAL_CMD_CAMERA = 0X86,
         GIMBAL_CMD_RCV_POS = 0X87
@@ -85,6 +86,22 @@ namespace G1
         int16_t HALL_yaw;
     } GIMBAL_RCV_POS_MSG_T;
 
+    typedef struct
+    {
+        float q[4];
+        float acc[3];
+        float yawSetPoint;
+        float yawSpeedSetPoint;
+    } GIMBAL_ATT_CORR_MSG_T;
+
+
+    typedef struct 
+    {
+        uint8_t cmd;
+        uint8_t data[256];
+        uint8_t len;
+    }GIMBAL_STD_MSG_T;
+    
 #pragma pack()
 
 }

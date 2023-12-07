@@ -8,6 +8,7 @@ sudo apt install -y gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa
 sudo apt install -y gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 
 sudo apt install -y gstreamer1.0-pulseaudio
 sudo apt install -y gtk-doc-tools
+sudo apt install -y libeigen3-dev libfmt-dev
 
 sudo apt -y install autotools-dev automake m4 perl
 sudo apt -y install libtool

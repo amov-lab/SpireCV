@@ -74,10 +74,10 @@ namespace sv
   bool VeriDetectorCUDAImpl::cudaSetup()
   {
 #ifdef WITH_CUDA
-    std::string trt_model_fn = get_home() + SV_MODEL_DIR + "model.engine";
+    std::string trt_model_fn = get_home() + SV_MODEL_DIR + "veri.engine";
     if (!is_file_exist(trt_model_fn))
     {
-      throw std::runtime_error("SpireCV (104) Error loading the VERI TensorRT model (File Not Exist)");
+      throw std::runtime_error("SpireCV (104) Error loading the VeriDetector TensorRT model (File Not Exist)");
     }
     char *trt_model_stream{nullptr};
     size_t trt_model_size{0};
@@ -107,7 +107,7 @@ namespace sv
 
     delete[] trt_model_stream;
     const ICudaEngine &cu_engine = this->_trt_context->getEngine();
-    assert(cu_engine.getNbBindings() == 2);
+    assert(cu_engine.getNbBindings() == 3);
 
     this->_input_index = cu_engine.getBindingIndex("input");
     this->_output_index1 = cu_engine.getBindingIndex("output");
@@ -123,7 +123,6 @@ namespace sv
     this->_p_data = new float[2 * 3 * 224 * 224];
     this->_p_prob1 = new float[2 * 576];
     this->_p_prob2 = new float[2 * 1280];
-    this->_p_prob3 = new float[2 * 1280];
     // Input
     TRTCHECK(cudaMemcpyAsync(_p_buffers[this->_input_index], this->_p_data, 2 * 3 * 224 * 224 * sizeof(float), cudaMemcpyHostToDevice, this->_cu_stream));
     // this->_trt_context->enqueue(1, _p_buffers, this->_cu_stream, nullptr);
@@ -139,11 +138,12 @@ namespace sv
 
   void VeriDetectorCUDAImpl::cudaRoiCNN(
       std::vector<cv::Mat> &input_rois_,
-      std::vector<int> &output_labels_)
+      std::vector<float> &output_labels_)
   {
 #ifdef WITH_CUDA
 
-    for (int i = 0; i < 2; ++i)
+
+    for (int i = 0; i < 2; i++)
     {
       for (int row = 0; row < 224; ++row)
       {
@@ -151,13 +151,14 @@ namespace sv
         for (int col = 0; col < 224; ++col)
         {
           // mean=[136.20, 141.50, 145.41], std=[44.77, 44.20, 44.30]
-          this->_p_data[224 * 224 * 3 * i + col + row * 224] = ((float)uc_pixel[0] - 136.20f) / 44.77f;
-          this->_p_data[224 * 224 * 3 * i + col + row * 224 + 224 * 224] = ((float)uc_pixel[1] - 141.50f) / 44.20f;
-          this->_p_data[224 * 224 * 3 * i + col + row * 224 + 224 * 224 * 2] = ((float)uc_pixel[2] - 145.41f) / 44.30f;
+          this->_p_data[col + row * 224 + 224 * 224 * 3 * i] = ((float)uc_pixel[0] - 136.20f) / 44.77f;
+          this->_p_data[col + row * 224 + 224 * 224  + 224 * 224 * 3 * i] = ((float)uc_pixel[1] - 141.50f) / 44.20f;
+          this->_p_data[col + row * 224 + 224 * 224 * 2  + 224 * 224 * 3 * i] = ((float)uc_pixel[2] - 145.41f) / 44.30f;
           uc_pixel += 3;
         }
       }
     }
+
 
     // Input
     TRTCHECK(cudaMemcpyAsync(_p_buffers[this->_input_index], this->_p_data, 2 * 3 * 224 * 224 * sizeof(float), cudaMemcpyHostToDevice, this->_cu_stream));
@@ -180,10 +181,9 @@ namespace sv
       }
     }
 
-    // 计算两个数组的余弦相似性
-    float similarity = cosineSimilarity(_p_prob2, _p_prob2 + 1280, 1280);
-    std::cout << "余弦相似性: " << similarity << std::endl;
-    std::cout << "VERI LABEL: " << label << std::endl;
+    float similarity = cosineSimilarity(this->_p_prob2, this->_p_prob2 + 1280, 1280);
+    output_labels_.push_back(label);
+    output_labels_.push_back(similarity);
   }
 #endif
 }

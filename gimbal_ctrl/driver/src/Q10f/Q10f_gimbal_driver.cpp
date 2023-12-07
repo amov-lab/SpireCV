@@ -3,8 +3,8 @@
  * @Author: L LC @amov
  * @Date: 2022-10-27 18:10:06
  * @LastEditors: L LC @amov
- * @LastEditTime: 2023-04-11 17:29:58
- * @FilePath: /gimbal-sdk-multi-platform/src/Q10f/Q10f_gimbal_driver.cpp
+ * @LastEditTime: 2023-12-05 17:23:15
+ * @FilePath: /SpireCV/gimbal_ctrl/driver/src/Q10f/Q10f_gimbal_driver.cpp
  */
 #include "Q10f_gimbal_driver.h"
 #include "Q10f_gimbal_crc32.h"
@@ -16,27 +16,10 @@
  *
  * @param _IO The IOStreamBase object that will be used to communicate with the gimbal.
  */
-Q10fGimbalDriver::Q10fGimbalDriver(amovGimbal::IOStreamBase *_IO) : amovGimbal::IamovGimbalBase(_IO)
+Q10fGimbalDriver::Q10fGimbalDriver(amovGimbal::IOStreamBase *_IO) : amovGimbal::amovGimbalBase(_IO)
 {
-    memset(&rxQueue, 0, sizeof(RING_FIFO_CB_T));
-    memset(&txQueue, 0, sizeof(RING_FIFO_CB_T));
-
-    rxBuffer = (uint8_t *)malloc(MAX_QUEUE_SIZE * sizeof(Q10f::GIMBAL_FRAME_T));
-    if (rxBuffer == NULL)
-    {
-        std::cout << "Receive buffer creation failed! Size : " << MAX_QUEUE_SIZE << std::endl;
-        exit(1);
-    }
-    txBuffer = (uint8_t *)malloc(MAX_QUEUE_SIZE * sizeof(Q10f::GIMBAL_FRAME_T));
-    if (txBuffer == NULL)
-    {
-        free(rxBuffer);
-        std::cout << "Send buffer creation failed! Size : " << MAX_QUEUE_SIZE << std::endl;
-        exit(1);
-    }
-
-    Ring_Fifo_init(&rxQueue, sizeof(Q10f::GIMBAL_FRAME_T), rxBuffer, MAX_QUEUE_SIZE * sizeof(Q10f::GIMBAL_FRAME_T));
-    Ring_Fifo_init(&txQueue, sizeof(Q10f::GIMBAL_FRAME_T), txBuffer, MAX_QUEUE_SIZE * sizeof(Q10f::GIMBAL_FRAME_T));
+    rxQueue = new fifoRing(sizeof(Q10f::GIMBAL_FRAME_T), MAX_QUEUE_SIZE);
+    txQueue = new fifoRing(sizeof(Q10f::GIMBAL_FRAME_T), MAX_QUEUE_SIZE);
 
     parserState = Q10f::GIMBAL_SERIAL_STATE_IDLE;
 
@@ -77,30 +60,12 @@ uint32_t Q10fGimbalDriver::pack(IN uint32_t cmd, uint8_t *pPayload, uint8_t payl
     }
     txTemp.len = payloadSize;
 
-    txMutex.lock();
-    if (Ring_Fifo_in_cell(&txQueue, &txTemp))
+    if (txQueue->inCell(&txTemp))
     {
         ret = payloadSize + sizeof(uint32_t) + sizeof(uint8_t);
     }
-    txMutex.unlock();
 
     return ret;
-}
-
-/**
- * > This function is used to get a packet from the receive queue
- *
- * @param void This is the type of data that will be stored in the queue.
- *
- * @return A boolean value.
- */
-bool Q10fGimbalDriver::getRxPack(OUT void *pack)
-{
-    bool state = false;
-    rxMutex.lock();
-    state = Ring_Fifo_out_cell(&rxQueue, pack);
-    rxMutex.unlock();
-    return state;
 }
 
 void Q10fGimbalDriver::convert(void *buf)
@@ -116,12 +81,12 @@ void Q10fGimbalDriver::convert(void *buf)
         state.abs.yaw = tempPos->yawIMUAngle * Q10F_SCALE_FACTOR_ANGLE;
         state.abs.roll = tempPos->rollIMUAngle * Q10F_SCALE_FACTOR_ANGLE;
         state.abs.pitch = tempPos->pitchIMUAngle * Q10F_SCALE_FACTOR_ANGLE;
-        state.rel.yaw = tempPos->rollStatorRotorAngle * Q10F_SCALE_FACTOR_SPEED;
+        state.rel.yaw = tempPos->yawStatorRotorAngle * Q10F_SCALE_FACTOR_SPEED;
         state.rel.roll = tempPos->rollStatorRotorAngle * Q10F_SCALE_FACTOR_SPEED;
         state.rel.pitch = tempPos->pitchStatorRotorAngle * Q10F_SCALE_FACTOR_SPEED;
         updateGimbalStateCallback(state.rel.roll, state.rel.pitch, state.rel.yaw,
                                   state.abs.roll, state.abs.pitch, state.abs.yaw,
-                                  state.fov.x, state.fov.y);
+                                  state.fov.x, state.fov.y, updataCaller);
         mState.unlock();
 
         break;
@@ -136,32 +101,9 @@ void Q10fGimbalDriver::convert(void *buf)
     }
 }
 
-/**
- * The function is called by the main thread to send a command to the gimbal.
- *
- * The function first checks to see if the serial port is busy and if it is open. If it is not busy and
- * it is open, the function locks the txMutex and then checks to see if there is a command in the
- * txQueue. If there is a command in the txQueue, the function copies the command to the tx buffer and
- * then unlocks the txMutex. The function then sends the command to the gimbal.
- *
- * The txQueue is a ring buffer that holds commands that are waiting to be sent to the gimbal. The
- * txQueue is a ring buffer because the gimbal can only process one command at a time. If the gimbal is
- * busy processing a command, the command will be placed in the txQueue and sent to the gimbal when the
- * gimbal is ready to receive the command.
- */
-void Q10fGimbalDriver::send(void)
+uint32_t Q10fGimbalDriver::calPackLen(void *pack)
 {
-    if (!IO->isBusy() && IO->isOpen())
-    {
-        bool state = false;
-        txMutex.lock();
-        state = Ring_Fifo_out_cell(&txQueue, &tx);
-        txMutex.unlock();
-        if (state)
-        {
-            IO->outPutBytes((uint8_t *)&tx, tx.len + Q10F_PAYLOAD_OFFSET + sizeof(uint8_t));
-        }
-    }
+    return ((Q10f::GIMBAL_FRAME_T *)pack)->len + Q10F_PAYLOAD_OFFSET + sizeof(uint8_t);
 }
 
 /**
@@ -238,9 +180,7 @@ bool Q10fGimbalDriver::parser(IN uint8_t byte)
         if (byte == suncheck)
         {
             state = true;
-            rxMutex.lock();
-            Ring_Fifo_in_cell(&rxQueue, &rx);
-            rxMutex.unlock();
+            rxQueue->inCell(&rx);
         }
         else
         {

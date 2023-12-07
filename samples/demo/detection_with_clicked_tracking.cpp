@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
   // cap.setWH(640, 480);
   // cap.setFps(30);
   cap.open(sv::CameraType::WEBCAM, 0);  // CameraID 0
-  // cv::VideoCapture cap("/home/amov/SpireCV/test/tracking_1280x720.mp4");
+
   // 实例化OpenCV的Mat类，用于内存单帧图像
   cv::Mat img;
   int frame_id = 0;

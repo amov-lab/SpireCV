@@ -3,8 +3,8 @@
  * @Author: L LC @amov
  * @Date: 2022-10-27 18:10:06
  * @LastEditors: L LC @amov
- * @LastEditTime: 2022-10-28 14:10:02
- * @FilePath: \amov-gimbal-sdk\src\G1\g1_gimbal_crc32.h
+ * @LastEditTime: 2023-12-05 16:30:13
+ * @FilePath: /SpireCV/gimbal_ctrl/driver/src/G1/g1_gimbal_crc32.h
  */
 #ifndef G1_GIMBAL_CRC32_H
 #define G1_GIMBAL_CRC32_H

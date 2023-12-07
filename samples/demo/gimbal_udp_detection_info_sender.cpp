@@ -7,8 +7,8 @@ using namespace std;
 
 // yaw roll pitch
 double gimbalEulerAngle[3];
-void gimableCallback(double &imu_ang_r, double &imu_ang_p, double &imu_ang_y,
-                     double &frame_ang_r, double &frame_ang_p, double &frame_ang_y,
+void gimableCallback(double &frame_ang_r, double &frame_ang_p, double &frame_ang_y,
+                     double &imu_ang_r, double &imu_ang_p, double &imu_ang_y,
                      double &fov_x, double &fov_y)
 {
   static int count = 0;
@@ -79,6 +79,8 @@ int main(int argc, char *argv[])
     sv::TargetsInFrame tgts(frame_id++);
     // 读取一帧图像到img
     cap.read(img);
+
+    // std::cout << img.type() <<  std::endl;
 
     // 执行Aruco二维码检测
     ad.detect(img, tgts);

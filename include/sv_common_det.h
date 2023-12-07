@@ -16,7 +16,7 @@ class CommonObjectDetectorCUDAImpl;
 class CommonObjectDetector : public CommonObjectDetectorBase
 {
 public:
-  CommonObjectDetector();
+  CommonObjectDetector(bool input_4k=false);
   ~CommonObjectDetector();
 protected:
   bool setupImpl();
@@ -32,6 +32,7 @@ protected:
   );
 
   CommonObjectDetectorCUDAImpl* _cuda_impl;
+  bool _input_4k;
 };
 
 

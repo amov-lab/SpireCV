@@ -3,8 +3,8 @@
  * @Author: L LC @amov
  * @Date: 2023-03-02 10:00:52
  * @LastEditors: L LC @amov
- * @LastEditTime: 2023-03-29 11:47:18
- * @FilePath: /gimbal-sdk-multi-platform/src/Q10f/Q10f_gimbal_funtion.cpp
+ * @LastEditTime: 2023-12-05 16:27:39
+ * @FilePath: /SpireCV/gimbal_ctrl/driver/src/Q10f/Q10f_gimbal_funtion.cpp
  */
 #include "Q10f_gimbal_driver.h"
 #include "Q10f_gimbal_crc32.h"
@@ -17,7 +17,7 @@
  *
  * @return The return value is the number of bytes written to the buffer.
  */
-uint32_t Q10fGimbalDriver::setGimabalPos(const amovGimbal::AMOV_GIMBAL_POS_T &pos)
+uint32_t Q10fGimbalDriver::setGimabalPos(const AMOV_GIMBAL_POS_T &pos)
 {
     Q10f::GIMBAL_SET_POS_MSG_T temp;
     temp.modeR = Q10f::GIMBAL_CMD_POS_MODE_ANGLE_SPEED;
@@ -41,7 +41,7 @@ uint32_t Q10fGimbalDriver::setGimabalPos(const amovGimbal::AMOV_GIMBAL_POS_T &po
  *
  * @return The return value is the number of bytes written to the buffer.
  */
-uint32_t Q10fGimbalDriver::setGimabalSpeed(const amovGimbal::AMOV_GIMBAL_POS_T &speed)
+uint32_t Q10fGimbalDriver::setGimabalSpeed(const AMOV_GIMBAL_POS_T &speed)
 {
     Q10f::GIMBAL_SET_POS_MSG_T temp;
     temp.modeR = Q10f::GIMBAL_CMD_POS_MODE_SPEED;
@@ -64,7 +64,7 @@ uint32_t Q10fGimbalDriver::setGimabalSpeed(const amovGimbal::AMOV_GIMBAL_POS_T &
  *
  * @return The return value is the number of bytes written to the buffer.
  */
-uint32_t Q10fGimbalDriver::setGimabalFollowSpeed(const amovGimbal::AMOV_GIMBAL_POS_T &followSpeed)
+uint32_t Q10fGimbalDriver::setGimabalFollowSpeed(const AMOV_GIMBAL_POS_T &followSpeed)
 {
     state.maxFollow.pitch = followSpeed.pitch / 0.1220740379f;
     state.maxFollow.roll = followSpeed.roll / 0.1220740379f;
@@ -108,25 +108,25 @@ uint32_t Q10fGimbalDriver::takePic(void)
  *
  * @return The return value is the number of bytes written to the serial port.
  */
-uint32_t Q10fGimbalDriver::setVideo(const amovGimbal::AMOV_GIMBAL_VIDEO_T newState)
+uint32_t Q10fGimbalDriver::setVideo(const AMOV_GIMBAL_VIDEO_T newState)
 {
     uint8_t cmd[2] = {0X01, 0XFF};
 
-    if (newState == amovGimbal::AMOV_GIMBAL_VIDEO_TAKE)
+    if (newState == AMOV_GIMBAL_VIDEO_TAKE)
     {
         cmd[0] = 0X02;
-        state.video = amovGimbal::AMOV_GIMBAL_VIDEO_TAKE;
+        state.video = AMOV_GIMBAL_VIDEO_TAKE;
     }
     else
     {
         cmd[0] = 0X03;
-        state.video = amovGimbal::AMOV_GIMBAL_VIDEO_OFF;
+        state.video = AMOV_GIMBAL_VIDEO_OFF;
     }
 
     return pack(Q10f::GIMBAL_CMD_CAMERA, (uint8_t *)cmd, sizeof(cmd));
 }
 
-uint32_t Q10fGimbalDriver::setGimbalZoom(amovGimbal::AMOV_GIMBAL_ZOOM_T zoom, float targetRate)
+uint32_t Q10fGimbalDriver::setGimbalZoom(AMOV_GIMBAL_ZOOM_T zoom, float targetRate)
 {
     uint8_t cmd[5] = {0X00, 0X00, 0X00, 0X00, 0XFF};
     if (targetRate == 0.0f)
@@ -134,13 +134,13 @@ uint32_t Q10fGimbalDriver::setGimbalZoom(amovGimbal::AMOV_GIMBAL_ZOOM_T zoom, fl
         cmd[1] = 0XFF;
         switch (zoom)
         {
-        case amovGimbal::AMOV_GIMBAL_ZOOM_IN:
+        case AMOV_GIMBAL_ZOOM_IN:
             cmd[0] = Q10f::GIMBAL_CMD_ZOOM_IN;
             break;
-        case amovGimbal::AMOV_GIMBAL_ZOOM_OUT:
+        case AMOV_GIMBAL_ZOOM_OUT:
             cmd[0] = Q10f::GIMBAL_CMD_ZOOM_OUT;
             break;
-        case amovGimbal::AMOV_GIMBAL_ZOOM_STOP:
+        case AMOV_GIMBAL_ZOOM_STOP:
             cmd[0] = Q10f::GIMBAL_CMD_ZOOM_STOP;
             break;
         default:
@@ -159,18 +159,18 @@ uint32_t Q10fGimbalDriver::setGimbalZoom(amovGimbal::AMOV_GIMBAL_ZOOM_T zoom, fl
     }
 }
 
-uint32_t Q10fGimbalDriver::setGimbalFocus(amovGimbal::AMOV_GIMBAL_ZOOM_T zoom, float targetRate)
+uint32_t Q10fGimbalDriver::setGimbalFocus(AMOV_GIMBAL_ZOOM_T zoom, float targetRate)
 {
     uint8_t cmd[2] = {0X00, 0XFF};
     switch (zoom)
     {
-    case amovGimbal::AMOV_GIMBAL_ZOOM_IN:
+    case AMOV_GIMBAL_ZOOM_IN:
         cmd[0] = Q10f::GIMBAL_CMD_ZOOM_IN;
         break;
-    case amovGimbal::AMOV_GIMBAL_ZOOM_OUT:
+    case AMOV_GIMBAL_ZOOM_OUT:
         cmd[0] = Q10f::GIMBAL_CMD_ZOOM_OUT;
         break;
-    case amovGimbal::AMOV_GIMBAL_ZOOM_STOP:
+    case AMOV_GIMBAL_ZOOM_STOP:
         cmd[0] = Q10f::GIMBAL_CMD_ZOOM_STOP;
         break;
     default:

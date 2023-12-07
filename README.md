@@ -12,7 +12,7 @@ SpireCV是一个专为**智能无人系统**打造的**边缘实时感知SDK**�
 
 ## 快速入门
 
- - 安装及使用：[SpireCV使用手册](https://docs.amovlab.com/Spire_CV_Amov/#/)、[SpireCV开发者套件指南](https://docs.amovlab.com/spirecvkit/#/)
+ - 安装及使用：[SpireCV使用手册](https://docs.amovlab.com/Spire_CV_Amov/#/)（[wolai版本](https://www.wolai.com/4qWFM6aZmtpQE6jj7hnNMW)）、[SpireCV开发者套件指南](https://docs.amovlab.com/spirecvkit/#/)
     - 需掌握C++语言基础、CMake编译工具基础。
     - 需要掌握OpenCV视觉库基础，了解CUDA、OpenVINO、RKNN和CANN等计算库。
     - 需要了解ROS基本概念及基本操作。
