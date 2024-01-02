@@ -32,7 +32,7 @@ CameraAlgorithm::CameraAlgorithm()
   // this->_allocator = NULL;
   this->_t0 = std::chrono::system_clock::now();
 
-  this->alg_params_fn = _get_home() + SV_ROOT_DIR + "sv_algorithm_params.json";
+  this->alg_params_fn = _get_home() + SV_ROOT_DIR + "params/a-params/sv_algorithm_params.json";
   // std::cout << "CameraAlgorithm->alg_params_fn: " << this->alg_params_fn << std::endl;
   // if (_is_file_exist(params_fn))
   //   this->loadAlgorithmParams(params_fn);
@@ -80,6 +80,12 @@ ArucoDetector::ArucoDetector()
 }
 
 
+void ArucoDetector::getIdsWithLengths(std::vector<int>& ids_, std::vector<double>& lengths_)
+{
+  ids_ = this->_ids_need;
+  lengths_ = this->_lengths_need;
+}
+
 void ArucoDetector::_load()
 {
   JsonValue all_value;
@@ -94,7 +100,8 @@ void ArucoDetector::_load()
   // _detector_params = aruco::DetectorParameters::create();
   _detector_params = new aruco::DetectorParameters;
   for (auto i : aruco_params_value) {
-    if ("_dictionary_id" == std::string(i->key)) {
+    if ("dictionaryId" == std::string(i->key)) {
+      // std::cout << "dictionary_id (old, new): " << _dictionary_id << ", " << i->value.toNumber() << std::endl;
       _dictionary_id = i->value.toNumber();
     }
     else if ("adaptiveThreshConstant" == std::string(i->key)) {
@@ -995,6 +1002,11 @@ void CommonObjectDetectorBase::detect(cv::Mat img_, TargetsInFrame& tgts_, Box* 
       if (this->_with_segmentation)
       {
         cv::Mat mask_j = boxes_seg[j].clone();
+#ifdef WITH_INTEL
+        tgt.setMask(mask_j);
+#endif
+
+#ifdef WITH_CUDA
         int maskh = mask_j.rows, maskw = mask_j.cols;
         assert(maskh == maskw);
 
@@ -1024,6 +1036,7 @@ void CommonObjectDetectorBase::detect(cv::Mat img_, TargetsInFrame& tgts_, Box* 
         {
           tgt.setMask(mask_j);
         }
+#endif
       }
 
       tgts_.targets.push_back(tgt);

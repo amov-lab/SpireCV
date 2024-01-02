@@ -10,6 +10,11 @@
 #include "veri_det_cuda_impl.h"
 #endif
 
+#ifdef WITH_INTEL
+#include <openvino/openvino.hpp>
+#include "veri_det_intel_impl.h"
+#endif
+
 #define SV_ROOT_DIR "/SpireCV/"
 
 namespace sv
@@ -19,6 +24,10 @@ namespace sv
   {
 #ifdef WITH_CUDA
     this->_cuda_impl = new VeriDetectorCUDAImpl;
+#endif
+
+#ifdef WITH_INTEL
+    this->_intel_impl = new VeriDetectorIntelImpl;
 #endif
   }
   VeriDetector::~VeriDetector()
@@ -50,6 +59,9 @@ namespace sv
     return this->_cuda_impl->cudaSetup();
 #endif
   
+#ifdef WITH_INTEL
+    return this->_intel_impl->intelSetup();
+#endif
     return false;
   }
 
@@ -60,6 +72,12 @@ namespace sv
   {
 #ifdef WITH_CUDA
     this->_cuda_impl->cudaRoiCNN(
+        input_rois_,
+        output_labels_);
+#endif
+
+#ifdef WITH_INTEL
+    this->_intel_impl->intelRoiCNN(
         input_rois_,
         output_labels_);
 #endif
@@ -94,26 +112,23 @@ namespace sv
     cv::Mat img_ground = cv::imread(img_ground_dir);
     cv::resize(img_ground, img_ground, cv::Size(224, 224));
     std::vector<cv::Mat> input_rois_ = {crop, img_ground};
-
-#ifdef WITH_CUDA
+    
     std::vector<float> output_labels;
+#ifdef WITH_CUDA
     roiCNN(input_rois_, output_labels);
+#endif
 
-    // auto t1 = std::chrono::system_clock::now();
-    // tgts_.setFPS(1000.0 / std::chrono::duration_cast<std::chrono::milliseconds>(t1 - this->_t0).count());
-    // this->_t0 = std::chrono::system_clock::now();
-    // tgts_.setTimeNow();
-
+#ifdef WITH_INTEL
+    roiCNN(input_rois_, output_labels);
+#endif
+   
     if (output_labels.size() > 0)
     {
-      // tgt.category_id = output_labels[0];
       tgt.sim_score = output_labels[1];
-      // tgts_.targets.push_back(tgt);
     }
-#endif
   }
 
-    void VeriDetector::getSubwindow(cv::Mat &dstCrop, cv::Mat &srcImg, int originalSz, int resizeSz)
+  void VeriDetector::getSubwindow(cv::Mat &dstCrop, cv::Mat &srcImg, int originalSz, int resizeSz)
   {
     cv::Scalar avgChans = mean(srcImg);
     cv::Size imgSz = srcImg.size();

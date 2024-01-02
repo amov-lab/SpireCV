@@ -20,16 +20,18 @@ int main(int argc, char *argv[])
   // 实例化 框选目标跟踪类
   sv::VeriDetector veri;
   // 手动导入相机参数，如果使用Amov的G1等吊舱或相机，则可以忽略该步骤，将自动下载相机参数文件
-  veri.loadCameraParams(sv::get_home() + "/SpireCV/calib_webcam_640x480.yaml");
+  veri.loadCameraParams(sv::get_home() + "/SpireCV/confs/calib_webcam_1280x720.yaml");
+  veri.loadAlgorithmParams(sv::get_home() + "/SpireCV/confs/sv_algorithm_params.json");
 
   sv::CommonObjectDetector cod;
-  cod.loadCameraParams(sv::get_home() + "/SpireCV/calib_webcam_640x480.yaml");
+  cod.loadCameraParams(sv::get_home() + "/SpireCV/confs/calib_webcam_1280x720.yaml");
+  cod.loadAlgorithmParams(sv::get_home() + "/SpireCV/confs/sv_algorithm_params.json");
 
   // 打开摄像头
   sv::Camera cap;
-  // cap.setWH(640, 480);
-  // cap.setFps(30);
-  cap.open(sv::CameraType::WEBCAM, 0); // CameraID 0
+  cap.setWH(cod.image_width, cod.image_height);
+  cap.setFps(30);
+  cap.open(sv::CameraType::V4L2CAM, 0); // CameraID 0
   // 实例化OpenCV的Mat类，用于内存单帧图像
   cv::Mat img;
   int frame_id = 0;

@@ -128,6 +128,7 @@ public:
   
   bool getBox(Box& b);
   bool getAruco(int& id, std::vector<cv::Point2f> &corners);
+  bool getAruco(int& id, std::vector<cv::Point2f> &corners, cv::Vec3d &rvecs, cv::Vec3d &tvecs);
   bool getEllipse(double& xc_, double& yc_, double& a_, double& b_, double& rad_);
   std::string getJsonStr();
 
@@ -326,13 +327,13 @@ protected:
 };
 
 
-enum class CameraType {NONE, WEBCAM, V4L2CAM, G1, Q10, MIPI, GX40};
+enum class CameraType {NONE, WEBCAM, V4L2CAM, MIPI, RTSP, VIDEO, G1, Q10, GX40};
 
 class CameraBase {
 public:
   CameraBase(CameraType type=CameraType::NONE, int id=0);
   ~CameraBase();
-  void open(CameraType type=CameraType::WEBCAM, int id=0);
+  void open(CameraType type=CameraType::V4L2CAM, int id=0);
   bool read(cv::Mat& image);
   void release();
   
@@ -346,10 +347,14 @@ public:
   double getSaturation();
   double getHue();
   double getExposure();
+  std::string getFourcc();
   bool isRunning();
+  void setFourcc(std::string fourcc);
   void setWH(int width, int height);
   void setFps(int fps);
   void setIp(std::string ip);
+  void setRtspUrl(std::string rtsp_url);
+  void setVideoPath(std::string video_path);
   void setPort(int port);
   void setBrightness(double brightness);
   void setContrast(double contrast);
@@ -372,12 +377,15 @@ protected:
   int _height;
   int _fps;
   std::string _ip;
+  std::string _rtsp_url;
+  std::string _video_path;
   int _port;
   double _brightness;
   double _contrast;
   double _saturation;
   double _hue;
   double _exposure;
+  std::string _fourcc;
 };
 
 
@@ -392,6 +400,16 @@ void drawTargetsInFrame(
   bool with_ell=false,
   bool with_aruco=false,
   bool with_yaw=false
+);
+cv::Mat drawTargetsInFrame(
+  const cv::Mat img_,
+  const TargetsInFrame& tgts_,
+  const double scale,
+  bool with_all=true,
+  bool with_category=false,
+  bool with_tid=false,
+  bool with_seg=false,
+  bool with_box=false
 );
 std::string get_home();
 bool is_file_exist(std::string& fn);

@@ -46,6 +46,7 @@ class ArucoDetector : public CameraAlgorithm
 public:
   ArucoDetector();
   void detect(cv::Mat img_, TargetsInFrame& tgts_);
+  void getIdsWithLengths(std::vector<int>& ids_, std::vector<double>& lengths_);
 private:
   void _load();
   bool _params_loaded;

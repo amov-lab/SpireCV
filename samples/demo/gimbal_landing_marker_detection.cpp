@@ -58,7 +58,8 @@ int main(int argc, char *argv[])
   // 实例化 圆形降落标志 检测器类
   sv::LandingMarkerDetector lmd;
   // 手动导入相机参数，如果使用Amov的G1等吊舱或相机，则可以忽略该步骤，将自动下载相机参数文件
-  lmd.loadCameraParams(sv::get_home() + "/SpireCV/calib_webcam_1280x720.yaml");
+  lmd.loadCameraParams(sv::get_home() + "/SpireCV/confs/calib_webcam_1280x720.yaml");
+  lmd.loadAlgorithmParams(sv::get_home() + "/SpireCV/confs/sv_algorithm_params.json");
 
   // 实例化OpenCV的Mat类，用于内存单帧图像
   cv::Mat img;

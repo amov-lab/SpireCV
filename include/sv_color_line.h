@@ -25,7 +25,6 @@ public:
   double line_location_a2;
 
   bool is_load_parameter;
-
   std::string line_color;
 
 protected:

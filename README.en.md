@@ -38,9 +38,9 @@ SpireCV is an **real-time edge perception SDK** built for **intelligent unmanned
  - **Platform level**：
     - [x] X86 + Nvidia GPUs (10 series, 20 series, and 30 series graphics cards recommended)
     - [x] Jetson (AGX Orin/Xavier、Orin NX/Nano、Xavier NX)
-    - [ ] Intel CPU (coming soon)
-    - [ ] Rockchip (coming soon)
+    - [x] Intel CPU
     - [ ] HUAWEI Ascend (coming soon)
+    - [ ] Rockchip (coming soon)
 
 ## Demos
  - **QR code detection**

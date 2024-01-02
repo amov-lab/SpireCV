@@ -12,6 +12,7 @@
 namespace sv {
 
 class LandingMarkerDetectorCUDAImpl;
+class LandingMarkerDetectorIntelImpl;
 
 class LandingMarkerDetector : public LandingMarkerDetectorBase
 {
@@ -25,7 +26,8 @@ protected:
     std::vector<int>& output_labels_
   );
 
-  LandingMarkerDetectorCUDAImpl* _cuda_impl;
+  LandingMarkerDetectorCUDAImpl *_cuda_impl;
+  LandingMarkerDetectorIntelImpl *_intel_impl;
 };
 
 

@@ -24,6 +24,7 @@ else()
     option(USE_FFMPEG "BUILD WITH FFMPEG." ON)
   elseif(PLATFORM STREQUAL "X86_INTEL")
     add_definitions(-DPLATFORM_X86_INTEL)
+    option(USE_INTEL "BUILD WITH INTEL." ON)
     option(USE_FFMPEG "BUILD WITH FFMPEG." ON)
   else()
     message(FATAL_ERROR "UNSUPPORTED PLATFORM!")
@@ -38,6 +39,10 @@ if(USE_CUDA)
   message(STATUS "CUDA: ON")
 endif()
 
+if(USE_INTEL)
+  add_definitions(-DWITH_INTEL)
+  message(STATUS "INTEL: ON")
+endif()
 
 if(USE_GSTREAMER)
   add_definitions(-DWITH_GSTREAMER)
@@ -72,6 +77,9 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl/driver/src/GX40
   ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl/driver/src
   ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl
+  ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/common_det/intel
+  ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/landing_det/intel
+  ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/veri/intel
   ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/common_det/cuda
   ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/landing_det/cuda
   ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/sot/ocv470
@@ -187,7 +195,23 @@ if(USE_CUDA)
   list(APPEND spirecv_SRCS ${ALG_SRC_FILES})
 endif()
 
+if(USE_INTEL)
+  file(GLOB ALG_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/common_det/intel/*.cpp)
+  list(APPEND spirecv_SRCS ${ALG_SRC_FILES})
+  file(GLOB ALG_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/landing_det/intel/*.cpp)
+  list(APPEND spirecv_SRCS ${ALG_SRC_FILES})
+  file(GLOB ALG_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/veri/intel/*.cpp)
+  list(APPEND spirecv_SRCS ${ALG_SRC_FILES})
+endif()
+
 if(USE_FFMPEG)
+  if(USE_INTEL)
+    file(GLOB ALG_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/video_io/ffmpeg/x86_intel/*.cpp)
+    list(APPEND spirecv_SRCS ${ALG_SRC_FILES})
+  elseif(USE_CUDA)
+    file(GLOB ALG_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/video_io/ffmpeg/x86_cuda/*.cpp)
+    list(APPEND spirecv_SRCS ${ALG_SRC_FILES})
+  endif()
   file(GLOB ALG_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/video_io/ffmpeg/*.cpp)
   list(APPEND spirecv_SRCS ${ALG_SRC_FILES})
 endif()
@@ -231,10 +255,22 @@ if(USE_CUDA)  # PLATFORM_X86_CUDA & PLATFORM_JETSON
   target_link_libraries(SpireCVSeg sv_world)
 
 elseif(PLATFORM STREQUAL "X86_INTEL")  # Links to Intel-OpenVINO libraries here
+  # Intel-Openvino
+  include_directories(
+    PUBLIC /opt/intel/openvino_2022/runtime/include/
+    PUBLIC /opt/intel/openvino_2022/runtime/include/ie/
+  )
+  link_directories(
+    ${InferenceEngine_LIBRARIES}
+    /opt/intel/openvino_2022/runtime/lib/intel64/libopenvino.so
+  )
+  
   add_library(sv_world SHARED ${spirecv_SRCS})
   target_link_libraries(
     sv_world ${OpenCV_LIBS} 
     sv_gimbal
+    ${InferenceEngine_LIBRARIES}
+    /opt/intel/openvino_2022/runtime/lib/intel64/libopenvino.so
   )
 endif()
 
@@ -294,6 +330,8 @@ target_link_libraries(EvalModelOnCocoVal sv_world)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/samples/calib)
 add_executable(CameraCalibrarion samples/calib/calibrate_camera_charuco.cpp)
 target_link_libraries(CameraCalibrarion ${OpenCV_LIBS} sv_world)
+add_executable(CreateMarker samples/calib/create_marker.cpp)
+target_link_libraries(CreateMarker ${OpenCV_LIBS})
 
 message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
 if (NOT DEFINED SV_INSTALL_PREFIX)

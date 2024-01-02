@@ -17,6 +17,7 @@ cd nv-codec-headers
 git checkout n11.1.5.0
 sudo make install
 cd ..
+sudo rm -r nv-codec-headers
 
 wget https://ffmpeg.org/releases/ffmpeg-4.2.5.tar.bz2
 tar -xjf ffmpeg-4.2.5.tar.bz2

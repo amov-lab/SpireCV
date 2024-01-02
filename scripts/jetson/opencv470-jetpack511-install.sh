@@ -5,7 +5,7 @@ wget https://download.amovlab.com/model/deps/opencv-4.7.0.zip
 wget https://download.amovlab.com/model/deps/opencv_contrib-4.7.0.zip
 wget https://download.amovlab.com/model/deps/opencv_cache-4.7.0.zip
 
-
+current_dir=$(pwd)
 package_dir="."
 mkdir ~/opencv_build
 
@@ -52,3 +52,4 @@ sudo make install
 
 cd
 sudo rm -r ~/opencv_build
+cd ${current_dir}

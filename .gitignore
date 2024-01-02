@@ -1,6 +1,13 @@
 # Distribution / packaging
 .Python
 build/
+models/
+confs/
+ZLM/
+ZLMediaKit/
+ffmpeg-4.2.5/
+nv-codec-headers/
+*.bz2
 develop-eggs/
 dist/
 eggs/
@@ -15,6 +22,11 @@ share/python-wheels/
 *.egg
 MANIFEST
 .idea/
+calib_webcam_1280x720.yaml
+calib_webcam_640x480.yaml
+sv_algorithm_params.json
+sv_algorithm_params_coco_1280.json
+sv_algorithm_params_coco_640.json
 
 # Prerequisites
 *.d

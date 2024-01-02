@@ -454,6 +454,71 @@ void drawTargetsInFrame(
   }
 }
 
+
+cv::Mat drawTargetsInFrame(
+  const cv::Mat img_,
+  const TargetsInFrame& tgts_,
+  const double scale,
+  bool with_all,
+  bool with_category,
+  bool with_tid,
+  bool with_seg,
+  bool with_box
+)
+{
+  cv::Mat img_show;
+  cv::resize(img_, img_show, cv::Size(0, 0), scale, scale);
+  if (tgts_.rois.size() > 0)
+  {
+    cv::Mat image_ret;
+    cv::addWeighted(img_show, 0.5, cv::Mat::zeros(cv::Size(img_show.cols, img_show.rows), CV_8UC3), 0, 0, image_ret);
+    cv::Rect roi = cv::Rect((int)(tgts_.rois[0].x1*scale), (int)(tgts_.rois[0].y1*scale), (int)((tgts_.rois[0].x2 - tgts_.rois[0].x1)*scale), (int)((tgts_.rois[0].y2 - tgts_.rois[0].y1)*scale));
+    img_show(roi).copyTo(image_ret(roi));
+    image_ret.copyTo(img_show);
+  }
+
+  for (Target tgt : tgts_.targets)
+  {
+    cv::circle(img_show, cv::Point(int(tgt.cx * tgts_.width * scale), int(tgt.cy * tgts_.height * scale)), 4, cv::Scalar(0,255,0), 2);
+    if ((with_all || with_box) && tgt.has_box)
+    {
+      Box b;
+      tgt.getBox(b);
+      cv::rectangle(img_show, cv::Rect((int)(b.x1 * scale), (int)(b.y1 * scale), (int)((b.x2-b.x1+1)*scale), (int)((b.y2-b.y1+1)*scale)), cv::Scalar(0,0,255), 1, 1, 0);
+      if ((with_all || with_category) && tgt.has_category)
+      {
+        cv::putText(img_show, tgt.category, cv::Point((int)(b.x1*scale), (int)(b.y1*scale)-4), cv::FONT_HERSHEY_DUPLEX, 0.4, cv::Scalar(255,0,0));
+      }
+      if ((with_all || with_tid) && tgt.has_tid)
+      {
+        char tmp[32];
+        sprintf(tmp, "TID: %d", tgt.tracked_id);
+        cv::putText(img_show, tmp, cv::Point((int)(b.x1*scale), (int)(b.y1*scale)-14), cv::FONT_HERSHEY_DUPLEX, 0.4, cv::Scalar(0,0,255));
+      }
+    }
+    if ((with_all || with_seg) && tgt.has_seg)
+    {
+      cv::Mat mask = tgt.getMask() * 255;
+      cv::threshold(mask, mask, 127, 255, cv::THRESH_BINARY);
+      mask.convertTo(mask, CV_8UC1);
+
+      cv::resize(mask, mask, cv::Size(img_show.cols, img_show.rows));
+      std::vector<std::vector<cv::Point> > contours;
+      std::vector<cv::Vec4i> hierarchy;
+
+      cv::findContours(mask, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+      cv::Mat mask_disp = img_show.clone();
+      cv::fillPoly(mask_disp, contours, cv::Scalar(255,255,255), cv::LINE_AA);
+      cv::polylines(img_show, contours, true, cv::Scalar(255,255,255), 2, cv::LINE_AA);
+
+      double alpha = 0.6;
+      cv::addWeighted(img_show, alpha, mask_disp, 1.0-alpha, 0, img_show);
+    }
+  }
+  return img_show;
+}
+
+
 std::string Target::getJsonStr()
 {
   std::string json_str = "{";
@@ -585,6 +650,15 @@ bool Target::getAruco(int& id, std::vector<cv::Point2f> &corners)
 {
   id = this->_a_id;
   corners = this->_a_corners;
+  return this->has_aruco;
+}
+
+bool Target::getAruco(int& id, std::vector<cv::Point2f> &corners, cv::Vec3d &rvecs, cv::Vec3d &tvecs)
+{
+  id = this->_a_id;
+  corners = this->_a_corners;
+  rvecs = this->_a_rvecs;
+  tvecs = this->_a_tvecs;
   return this->has_aruco;
 }
 
@@ -985,6 +1059,7 @@ CameraBase::CameraBase(CameraType type, int id)
   this->_saturation = -1;
   this->_hue = -1;
   this->_exposure = -1;
+  this->_fourcc = "MJPG";
 
   this->open(type, id);
 }
@@ -992,6 +1067,14 @@ CameraBase::~CameraBase()
 {
   this->_is_running = false;
   // this->_tt.join();
+}
+std::string CameraBase::getFourcc()
+{
+  return this->_fourcc;
+}
+void CameraBase::setFourcc(std::string fourcc)
+{
+  this->_fourcc = fourcc;
 }
 void CameraBase::setWH(int width, int height)
 {
@@ -1005,6 +1088,14 @@ void CameraBase::setFps(int fps)
 void CameraBase::setIp(std::string ip)
 {
   this->_ip = ip;
+}
+void CameraBase::setRtspUrl(std::string rtsp_url)
+{
+  this->_rtsp_url = rtsp_url;
+}
+void CameraBase::setVideoPath(std::string video_path)
+{
+  this->_video_path = video_path;
 }
 void CameraBase::setPort(int port)
 {
@@ -1103,8 +1194,11 @@ void CameraBase::_run()
 {
   while (this->_is_running && this->_cap.isOpened())
   {
-    this->_cap >> this->_frame;
-    this->_is_updated = true;
+    if (this->_type != CameraType::VIDEO || this->_is_updated == false)
+    {
+      this->_cap >> this->_frame;
+      this->_is_updated = true;
+    }
     std::this_thread::sleep_for(std::chrono::milliseconds(2));
   }
 }
@@ -1117,8 +1211,8 @@ bool CameraBase::read(cv::Mat& image)
     {
       if (this->_is_updated)
       {
-        this->_is_updated = false;
         this->_frame.copyTo(image);
+        this->_is_updated = false;
         break;
       }
       std::this_thread::sleep_for(std::chrono::milliseconds(20));

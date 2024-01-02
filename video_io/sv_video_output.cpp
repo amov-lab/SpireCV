@@ -6,8 +6,13 @@
 #include "writer_gstreamer_impl.h"
 #endif
 #ifdef WITH_FFMPEG
-#include "bs_push_streamer.h"
-#include "bs_video_saver.h"
+#if defined(PLATFORM_X86_CUDA)
+#include "x86_cuda/bs_push_streamer.h"
+#include "x86_cuda/bs_video_saver.h"
+#elif defined(PLATFORM_X86_INTEL)
+#include "x86_intel/bs_push_streamer.h"
+#include "x86_intel/bs_video_saver.h"
+#endif
 #endif
 
 
@@ -37,10 +42,10 @@ bool VideoWriter::setupImpl(std::string file_name_)
   return this->_gstreamer_impl->gstreamerSetup(this, file_name_);
 #endif
 #ifdef WITH_FFMPEG
-#ifdef PLATFORM_X86_CUDA
+#if defined(PLATFORM_X86_CUDA)
   std::string enc = "h264_nvenc";
-#else
-  std::string enc = "";
+#elif defined(PLATFORM_X86_INTEL)
+  std::string enc = "h264_vaapi";
 #endif
   return this->_ffmpeg_impl->setup(file_path + file_name_ + ".avi", img_sz.width, img_sz.height, (int)fps, enc, 4);
 #endif
@@ -105,10 +110,10 @@ bool VideoStreamer::setupImpl()
 #endif
 #ifdef WITH_FFMPEG
   std::string rtsp_url = "rtsp://127.0.0.1/live" + url;
-#ifdef PLATFORM_X86_CUDA
+#if defined(PLATFORM_X86_CUDA)
   std::string enc = "h264_nvenc";
-#else
-  std::string enc = "";
+#elif defined(PLATFORM_X86_INTEL)
+  std::string enc = "h264_vaapi";
 #endif
   return this->_ffmpeg_impl->setup(rtsp_url, img_sz.width, img_sz.height, 24, enc, bitrate);
 #endif

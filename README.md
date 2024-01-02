@@ -38,9 +38,9 @@ SpireCV是一个专为**智能无人系统**打造的**边缘实时感知SDK**�
  - **平台层**：
     - [x] X86+Nvidia GPU（推荐10系、20系、30系显卡）
     - [x] Jetson（AGX Orin/Xavier、Orin NX/Nano、Xavier NX）
-    - [ ] Intel CPU（推进中）
-    - [ ] Rockchip（推进中）
+    - [x] Intel CPU
     - [ ] HUAWEI Ascend（推进中）
+    - [ ] Rockchip（推进中）
 
 ## 功能展示
  - **二维码检测**

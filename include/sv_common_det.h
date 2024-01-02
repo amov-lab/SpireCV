@@ -8,33 +8,36 @@
 #include <string>
 #include <chrono>
 
-
-namespace sv {
+namespace sv
+{
 
 class CommonObjectDetectorCUDAImpl;
+class CommonObjectDetectorIntelImpl;
+
 
 class CommonObjectDetector : public CommonObjectDetectorBase
 {
 public:
-  CommonObjectDetector(bool input_4k=false);
+  CommonObjectDetector(bool input_4k = false);
   ~CommonObjectDetector();
+
 protected:
   bool setupImpl();
   void detectImpl(
     cv::Mat img_,
-    std::vector<float>& boxes_x_,
-    std::vector<float>& boxes_y_,
-    std::vector<float>& boxes_w_,
-    std::vector<float>& boxes_h_,
-    std::vector<int>& boxes_label_,
-    std::vector<float>& boxes_score_,
-    std::vector<cv::Mat>& boxes_seg_
-  );
+    std::vector<float> &boxes_x_,
+    std::vector<float> &boxes_y_,
+    std::vector<float> &boxes_w_,
+    std::vector<float> &boxes_h_,
+    std::vector<int> &boxes_label_,
+    std::vector<float> &boxes_score_,
+    std::vector<cv::Mat> &boxes_seg_);
 
-  CommonObjectDetectorCUDAImpl* _cuda_impl;
+  CommonObjectDetectorCUDAImpl *_cuda_impl;
+  CommonObjectDetectorIntelImpl *_intel_impl;
+
   bool _input_4k;
 };
-
 
 }
 #endif

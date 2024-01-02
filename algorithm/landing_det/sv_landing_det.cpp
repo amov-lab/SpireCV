@@ -7,6 +7,10 @@
 #include "landing_det_cuda_impl.h"
 #endif
 
+#ifdef WITH_INTEL
+#include <openvino/openvino.hpp>
+#include "landing_det_intel_impl.h"
+#endif
 
 namespace sv {
 
@@ -15,6 +19,10 @@ LandingMarkerDetector::LandingMarkerDetector()
 {
 #ifdef WITH_CUDA
   this->_cuda_impl = new LandingMarkerDetectorCUDAImpl;
+#endif
+
+#ifdef WITH_INTEL
+  this->_intel_impl = new LandingMarkerDetectorIntelImpl;
 #endif
 }
 LandingMarkerDetector::~LandingMarkerDetector()
@@ -25,6 +33,10 @@ bool LandingMarkerDetector::setupImpl()
 {
 #ifdef WITH_CUDA
   return this->_cuda_impl->cudaSetup();
+#endif
+
+#ifdef WITH_INTEL
+  return this->_intel_impl->intelSetup();
 #endif
   return false;
 }
@@ -40,11 +52,13 @@ void LandingMarkerDetector::roiCNN(
     output_labels_
   );
 #endif
+
+#ifdef WITH_INTEL
+  this->_intel_impl->intelRoiCNN(
+    input_rois_,
+    output_labels_
+  );
+#endif
 }
-
-
-
-
-
 }
 
