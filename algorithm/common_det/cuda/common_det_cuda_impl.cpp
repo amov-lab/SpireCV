@@ -1,6 +1,8 @@
 #include "common_det_cuda_impl.h"
 #include <cmath>
 #include <fstream>
+#include <iostream>
+#include "sv_util.h"
 
 #define SV_MODEL_DIR "/SpireCV/models/"
 #define SV_ROOT_DIR "/SpireCV/"
@@ -362,17 +364,51 @@ bool CommonObjectDetectorCUDAImpl::cudaSetup(CommonObjectDetectorBase* base_, bo
   bool with_segmentation = base_->withSegmentation();
   double thrs_conf = base_->getThrsConf();
   double thrs_nms = base_->getThrsNms();
+  std::string model = base_->getModel();
+  int bs = base_->getBatchSize();
+  char bs_c[8];
+  sprintf(bs_c, "%d", bs);
+  std::string bs_s(bs_c);
 
   std::string engine_fn = get_home() + SV_MODEL_DIR + dataset + ".engine";
+  std::vector<std::string> files;
+  
+  _list_dir(get_home() + SV_MODEL_DIR, files, "-online.engine", "Nv-" + dataset + "-yolov5" + model + "_b" + bs_s + "_c");
+  if (files.size() > 0)
+  {
+    std::sort(files.rbegin(), files.rend(), _comp_str_lesser);
+    engine_fn = get_home() + SV_MODEL_DIR + files[0];
+  }
+
   if (input_w == 1280)
   {
-    engine_fn = get_home() + SV_MODEL_DIR + dataset + "_HD.engine";
+    files.clear();
+    _list_dir(get_home() + SV_MODEL_DIR, files, "-online.engine", "Nv-" + dataset + "-yolov5" + model + "6_b" + bs_s + "_c");
+    if (files.size() > 0)
+    {
+      std::sort(files.rbegin(), files.rend(), _comp_str_lesser);
+      engine_fn = get_home() + SV_MODEL_DIR + files[0];
+    }
+    else
+    {
+      engine_fn = get_home() + SV_MODEL_DIR + dataset + "_HD.engine";
+    }
   }
   if (with_segmentation)
   {
     base_->setInputH(640);
     base_->setInputW(640);
-    engine_fn = get_home() + SV_MODEL_DIR + dataset + "_SEG.engine";
+    files.clear();
+    _list_dir(get_home() + SV_MODEL_DIR, files, "-online.engine", "Nv-" + dataset + "-yolov5" + model + "_seg_b" + bs_s + "_c");
+    if (files.size() > 0)
+    {
+      std::sort(files.rbegin(), files.rend(), _comp_str_lesser);
+      engine_fn = get_home() + SV_MODEL_DIR + files[0];
+    }
+    else
+    {
+      engine_fn = get_home() + SV_MODEL_DIR + dataset + "_SEG.engine";
+    }
   }
   std::cout << "Load: " << engine_fn << std::endl;
   if (!is_file_exist(engine_fn))
@@ -413,18 +449,6 @@ bool CommonObjectDetectorCUDAImpl::cudaSetup(CommonObjectDetectorBase* base_, bo
 #endif
   return false;
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 }
 

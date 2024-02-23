@@ -1,6 +1,7 @@
 #include "veri_det_cuda_impl.h"
 #include <cmath>
 #include <fstream>
+#include "sv_util.h"
 
 #define SV_MODEL_DIR "/SpireCV/models/"
 #define SV_ROOT_DIR "/SpireCV/"
@@ -75,6 +76,16 @@ namespace sv
   {
 #ifdef WITH_CUDA
     std::string trt_model_fn = get_home() + SV_MODEL_DIR + "veri.engine";
+    
+    std::vector<std::string> files;
+    _list_dir(get_home() + SV_MODEL_DIR, files, "-online.engine", "Nv-VERI-mobilenet_v3");
+    if (files.size() > 0)
+    {
+      std::sort(files.rbegin(), files.rend(), _comp_str_lesser);
+      trt_model_fn = get_home() + SV_MODEL_DIR + files[0];
+    }
+    std::cout << "Load: " << trt_model_fn << std::endl;
+    
     if (!is_file_exist(trt_model_fn))
     {
       throw std::runtime_error("SpireCV (104) Error loading the VeriDetector TensorRT model (File Not Exist)");

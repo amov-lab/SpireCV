@@ -1,11 +1,13 @@
 {
     "CommonObjectDetector": {
         "dataset": "COCO",
+        "model": "s",
+        "batchSize": 1,
         "inputSize": 640,
+        "withSegmentation": true,
         "nmsThrs": 0.6,
         "scoreThrs": 0.4,
         "useWidthOrHeight": 1,
-        "withSegmentation": true,
         "datasetPersonVehicle": {
             "person": [0.5, 1.8],
             "car": [4.1, 1.5],

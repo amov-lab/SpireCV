@@ -1,6 +1,7 @@
 #include "sot_ocv470_impl.h"
 #include <cmath>
 #include <fstream>
+#include "sv_util.h"
 
 #define SV_MODEL_DIR "/SpireCV/models/"
 #define SV_ROOT_DIR "/SpireCV/"
@@ -30,9 +31,39 @@ bool SingleObjectTrackerOCV470Impl::ocv470Setup(SingleObjectTrackerBase* base_)
   std::string net = get_home() + SV_MODEL_DIR + "dasiamrpn_model.onnx";
   std::string kernel_cls1 = get_home() + SV_MODEL_DIR + "dasiamrpn_kernel_cls1.onnx";
   std::string kernel_r1 = get_home() + SV_MODEL_DIR + "dasiamrpn_kernel_r1.onnx";
+  
+  std::vector<std::string> files1, files2, files3;
+  _list_dir(get_home() + SV_MODEL_DIR, files1, ".onnx", "Ocv-DaSiamRPN-Model-");
+  _list_dir(get_home() + SV_MODEL_DIR, files2, ".onnx", "Ocv-DaSiamRPN-Kernel-CLS1-");
+  _list_dir(get_home() + SV_MODEL_DIR, files3, ".onnx", "Ocv-DaSiamRPN-Kernel-R1-");
+  if (files1.size() > 0 && files2.size() > 0 && files3.size() > 0)
+  {
+    std::sort(files1.rbegin(), files1.rend(), _comp_str_lesser);
+    std::sort(files2.rbegin(), files2.rend(), _comp_str_lesser);
+    std::sort(files3.rbegin(), files3.rend(), _comp_str_lesser);
+    net = get_home() + SV_MODEL_DIR + files1[0];
+    kernel_cls1 = get_home() + SV_MODEL_DIR + files2[0];
+    kernel_r1 = get_home() + SV_MODEL_DIR + files3[0];
+  }
+  std::cout << "Load: " << net << std::endl;
+  std::cout << "Load: " << kernel_cls1 << std::endl;
+  std::cout << "Load: " << kernel_r1 << std::endl;
 
   std::string backbone = get_home() + SV_MODEL_DIR + "nanotrack_backbone_sim.onnx";
   std::string neckhead = get_home() + SV_MODEL_DIR + "nanotrack_head_sim.onnx";
+  
+  std::vector<std::string> files4, files5;
+  _list_dir(get_home() + SV_MODEL_DIR, files4, ".onnx", "Ocv-NanoTrack-Backbone-SIM-");
+  _list_dir(get_home() + SV_MODEL_DIR, files5, ".onnx", "Ocv-NanoTrack-Head-SIM-");
+  if (files4.size() > 0 && files5.size() > 0)
+  {
+    std::sort(files4.rbegin(), files4.rend(), _comp_str_lesser);
+    std::sort(files5.rbegin(), files5.rend(), _comp_str_lesser);
+    backbone = get_home() + SV_MODEL_DIR + files4[0];
+    neckhead = get_home() + SV_MODEL_DIR + files5[0];
+  }
+  std::cout << "Load: " << backbone << std::endl;
+  std::cout << "Load: " << neckhead << std::endl;
 
   try
   {

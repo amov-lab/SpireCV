@@ -140,6 +140,8 @@ public:
   double getThrsConf();
   int useWidthOrHeight();
   bool withSegmentation();
+  std::string getModel();
+  int getBatchSize();
 protected:
   virtual bool setupImpl();
   virtual void detectImpl(
@@ -166,6 +168,8 @@ protected:
   double _thrs_conf;
   int _use_width_or_height;
   bool _with_segmentation;
+  std::string _model;
+  int _batch_size;
 };
 
 

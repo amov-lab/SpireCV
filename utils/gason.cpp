@@ -379,7 +379,7 @@ void _load_all_json(std::string json_fn, JsonValue& value, JsonAllocator& alloca
   }
   fin.close();
   // std::cout << json_str << std::endl;
-  char source[1024 * 1024];  // 1M
+  char source[1024 * 256];  // 256K
   char *endptr;
 
   strcpy(source, json_str.c_str());

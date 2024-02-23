@@ -24,10 +24,13 @@ bool _startswith(const std::string& str, const std::string& start);
 bool _endswith(const std::string& str, const std::string& end);
 std::string _trim(const std::string& str);
 int _comp_str_idx(const std::string& in_str, const std::string* str_list, int len);
+bool _comp_str_greater(const std::string& a, const std::string& b);
+bool _comp_str_lesser(const std::string& a, const std::string& b);
 
 /*************    file-related functions   ***************/
 std::string _get_home();
 bool _is_file_exist(std::string& fn);
+void _list_dir(std::string dir, std::vector<std::string>& files, std::string suffixs="", std::string prefix="", bool r=false);
 
 }
 

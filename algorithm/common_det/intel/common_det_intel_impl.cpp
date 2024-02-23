@@ -1,6 +1,7 @@
 #include "common_det_intel_impl.h"
 #include <cmath>
 #include <fstream>
+#include "sv_util.h"
 
 #define SV_MODEL_DIR "/SpireCV/models/"
 #define SV_ROOT_DIR "/SpireCV/"
@@ -124,17 +125,46 @@ namespace sv
     inpHeight = base_->getInputH();
     inpWidth = base_->getInputW();
     with_segmentation = base_->withSegmentation();
+    std::string model = base_->getModel();
 
     std::string openvino_fn = get_home() + SV_MODEL_DIR + dataset + ".onnx";
+    std::vector<std::string> files;
+    _list_dir(get_home() + SV_MODEL_DIR, files, "-online.onnx", "Int-" + dataset + "-yolov5" + model + "_c");
+    if (files.size() > 0)
+    {
+      std::sort(files.rbegin(), files.rend(), _comp_str_lesser);
+      openvino_fn = get_home() + SV_MODEL_DIR + files[0];
+    }
+
     if (inpWidth == 1280)
     {
-      openvino_fn = get_home() + SV_MODEL_DIR + dataset + "_HD.onnx";
+      files.clear();
+      _list_dir(get_home() + SV_MODEL_DIR, files, "-online.onnx", "Int-" + dataset + "-yolov5" + model + "6_c");
+      if (files.size() > 0)
+      {
+        std::sort(files.rbegin(), files.rend(), _comp_str_lesser);
+        openvino_fn = get_home() + SV_MODEL_DIR + files[0];
+      }
+      else
+      {
+        openvino_fn = get_home() + SV_MODEL_DIR + dataset + "_HD.onnx";
+      }
     }
     if (with_segmentation)
     {
       base_->setInputH(640);
       base_->setInputW(640);
-      openvino_fn = get_home() + SV_MODEL_DIR + dataset + "_SEG.onnx";
+      files.clear();
+      _list_dir(get_home() + SV_MODEL_DIR, files, "-online.onnx", "Int-" + dataset + "-yolov5" + model + "_seg_c");
+      if (files.size() > 0)
+      {
+        std::sort(files.rbegin(), files.rend(), _comp_str_lesser);
+        openvino_fn = get_home() + SV_MODEL_DIR + files[0];
+      }
+      else
+      {
+        openvino_fn = get_home() + SV_MODEL_DIR + dataset + "_SEG.onnx";
+      }
     }
     std::cout << "Load: " << openvino_fn << std::endl;
     if (!is_file_exist(openvino_fn))

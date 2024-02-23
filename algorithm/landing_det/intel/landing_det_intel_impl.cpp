@@ -26,6 +26,14 @@ namespace sv
   {
 #ifdef WITH_INTEL
     std::string onnx_model_fn = get_home() + SV_MODEL_DIR + "LandingMarker.onnx";
+    std::vector<std::string> files;
+    _list_dir(get_home() + SV_MODEL_DIR, files, "-online.onnx", "Int-LandingMarker-resnet34");
+    if (files.size() > 0)
+    {
+      std::sort(files.rbegin(), files.rend(), _comp_str_lesser);
+      onnx_model_fn = get_home() + SV_MODEL_DIR + files[0];
+    }
+
     if (!is_file_exist(onnx_model_fn))
     {
       throw std::runtime_error("SpireCV (104) Error loading the LandingMarker ONNX model (File Not Exist)");

@@ -32,7 +32,7 @@ CameraAlgorithm::CameraAlgorithm()
   // this->_allocator = NULL;
   this->_t0 = std::chrono::system_clock::now();
 
-  this->alg_params_fn = _get_home() + SV_ROOT_DIR + "params/a-params/sv_algorithm_params.json";
+  this->alg_params_fn = _get_home() + SV_ROOT_DIR + "confs/sv_algorithm_params.json";
   // std::cout << "CameraAlgorithm->alg_params_fn: " << this->alg_params_fn << std::endl;
   // if (_is_file_exist(params_fn))
   //   this->loadAlgorithmParams(params_fn);
@@ -916,6 +916,14 @@ void CommonObjectDetectorBase::setInputW(int w_)
 {
   this->_input_w = w_;
 }
+std::string CommonObjectDetectorBase::getModel()
+{
+  return this->_model;
+}
+int CommonObjectDetectorBase::getBatchSize()
+{
+  return this->_batch_size;
+}
 
 void CommonObjectDetectorBase::warmUp()
 {
@@ -1082,12 +1090,20 @@ void CommonObjectDetectorBase::_load()
   this->_thrs_nms = 0.6;
   this->_thrs_conf = 0.4;
   this->_use_width_or_height = 0;
+  this->_batch_size = 1;
+  this->_model = "s";
   
   for (auto i : detector_params_value) {
 
     if ("dataset" == std::string(i->key)) {
       this->_dataset = i->value.toString();
       std::cout << "dataset: " << this->_dataset << std::endl;
+    }
+    else if ("batchSize" == std::string(i->key)) {
+      this->_batch_size = i->value.toNumber();
+    }
+    else if ("model" == std::string(i->key)) {
+      this->_model = i->value.toString();
     }
     else if ("inputSize" == std::string(i->key)) {
       // std::cout << "inputSize (old, new): " << this->_input_w << ", " << i->value.toNumber() << std::endl;

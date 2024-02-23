@@ -138,7 +138,7 @@ void Camera::openImpl()
 
     sprintf(pipe, "nvarguscamerasrc sensor-id=%d ee-mode=0 tnr-mode=0 aeantibanding=0 wbmode=0 ! \
                    video/x-raw(memory:NVMM), width=(int)%d, height=(int)%d, format=(string)NV12, framerate=(fraction)%d/1 ! \
-                   nvvidconv ! video/x-raw, format=(string)BGRx ! appsink",
+                   nvvidconv ! video/x-raw, format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR ! appsink",
                    this->_camera_id, this->_width, this->_height, this->_fps);
     this->_cap.open(pipe, cv::CAP_GSTREAMER);
   }

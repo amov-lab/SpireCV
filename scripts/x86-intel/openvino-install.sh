@@ -16,5 +16,5 @@ cd /opt/intel
 sudo ln -s openvino_2022.3.1 openvino_2022
 
 echo "source /opt/intel/openvino_2022/setupvars.sh" >> ~/.bashrc
-source ~/.bashrc
+sh /opt/intel/openvino_2022/setupvars.sh
 cd ${current_dir}

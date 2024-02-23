@@ -1173,6 +1173,7 @@ void CameraBase::openImpl()
 }
 void CameraBase::open(CameraType type, int id)
 {
+  this->release();
   this->_type = type;
   this->_camera_id = id;
 
@@ -1215,7 +1216,7 @@ bool CameraBase::read(cv::Mat& image)
         this->_is_updated = false;
         break;
       }
-      std::this_thread::sleep_for(std::chrono::milliseconds(20));
+      std::this_thread::sleep_for(std::chrono::milliseconds(2));
       n_try ++;
     }
   }
@@ -1227,7 +1228,10 @@ bool CameraBase::read(cv::Mat& image)
 }
 void CameraBase::release()
 {
-  _cap.release();
+  this->_is_running = false;
+  this->_is_updated = false;
+  if (this->_cap.isOpened())
+    this->_cap.release();
 }
 
 

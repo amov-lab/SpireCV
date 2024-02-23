@@ -6,6 +6,10 @@
 #include <ctime>
 #include <chrono>
 #include <fstream>
+#include <dirent.h>
+#include <opencv2/opencv.hpp>
+#include <unordered_map>
+
 
 using namespace std;
 
@@ -25,6 +29,15 @@ bool _is_file_exist(std::string& fn)
     return f.good();
 }
 
+bool _comp_str_greater(const std::string& a, const std::string& b)
+{
+    return a > b;
+}
+
+bool _comp_str_lesser(const std::string& a, const std::string& b)
+{
+    return a < b;
+}
 
 void _get_sys_time(TimeInfo& t_info)
 {
@@ -135,5 +148,57 @@ int _comp_str_idx(const std::string& in_str, const std::string* str_list, int le
     }
     return -1;
 }
+
+
+void _list_dir(std::string dir, std::vector<std::string>& files, std::string suffixs, std::string prefix, bool r) {
+    // assert(_endswith(dir, "/") || _endswith(dir, "\\"));
+
+    DIR *pdir;
+    struct dirent *ent;
+    string childpath;
+    string absolutepath;
+    pdir = opendir(dir.c_str());
+    assert(pdir != NULL);
+
+    vector<string> suffixd(0);
+    if (!suffixs.empty() && suffixs != "") {
+        suffixd = _split(suffixs, "|");
+    }
+
+    while ((ent = readdir(pdir)) != NULL) {
+        if (ent->d_type & DT_DIR) {
+            if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0) {
+                continue;
+            }
+            if (r) { // If need to traverse subdirectories
+                childpath = dir + ent->d_name;
+                _list_dir(childpath, files);
+            }
+        }
+        else {
+            if (suffixd.size() > 0) {
+                bool can_push = false, cancan_push = true;
+                for (int i = 0; i < (int)suffixd.size(); i++) {
+                    if (_endswith(ent->d_name, suffixd[i]))
+                        can_push = true;
+                }
+                if (prefix.size() > 0) {
+                    if (!_startswith(ent->d_name, prefix))
+                        cancan_push = false;
+                }
+                if (can_push && cancan_push) {
+                    absolutepath = dir + ent->d_name;
+                    files.push_back(ent->d_name); // filepath
+                }
+            }
+            else {
+                absolutepath = dir + ent->d_name;
+                files.push_back(ent->d_name); // filepath
+            }
+        }
+    }
+    sort(files.begin(), files.end()); //sort names
+}
+
 
 }
