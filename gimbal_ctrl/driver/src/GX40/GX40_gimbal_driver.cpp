@@ -28,6 +28,7 @@ GX40GimbalDriver::GX40GimbalDriver(amovGimbal::IOStreamBase *_IO) : amovGimbal::
     targetPos[2] = 0;
 
     parserState = GX40::GIMBAL_FRAME_PARSER_STATE_IDLE;
+    upDataTs = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()) - std::chrono::milliseconds(2000);
 }
 
 /**
@@ -107,7 +108,8 @@ uint32_t GX40GimbalDriver::pack(IN uint32_t cmd, uint8_t *pPayload, uint8_t payl
     // 惯导数据填充
     std::chrono::milliseconds nowTs = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
     // over 1s GNSS has losed
-    if ((nowTs.count() - upDataTs.count()) < std::chrono::milliseconds(1500).count())
+    if ((nowTs.count() - upDataTs.count()) < std::chrono::milliseconds(1500).count() &&
+        cmd == GX40::GIMBAL_CMD_NOP)
     {
         primary->selfRoll = (int16_t)(-(carrierPos.roll / 0.01f));
         primary->selfPitch = (int16_t)(-(carrierPos.pitch / 0.01f));

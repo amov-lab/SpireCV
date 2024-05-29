@@ -24,7 +24,7 @@ public:
     ~MultipleObjectTracker();
 
     void init(CommonObjectDetector* detector_);
-    void track(cv::Mat img_, TargetsInFrame& tgts_);
+    sv::TargetsInFrame track(cv::Mat img_, TargetsInFrame& tgts_);
 
 private:
     void _load();

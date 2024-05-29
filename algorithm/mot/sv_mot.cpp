@@ -23,8 +23,9 @@ MultipleObjectTracker::~MultipleObjectTracker()
         delete this->_sort_impl;
 }
 
-void MultipleObjectTracker::track(cv::Mat img_, TargetsInFrame& tgts_)
+sv::TargetsInFrame MultipleObjectTracker::track(cv::Mat img_, TargetsInFrame& tgts_)
 {
+    sv::TargetsInFrame person_tgts(tgts_.frame_id);
     if (!this->_params_loaded)
     {
         this->_load();
@@ -33,8 +34,16 @@ void MultipleObjectTracker::track(cv::Mat img_, TargetsInFrame& tgts_)
     if ("sort" == this->_algorithm && this->_sort_impl)
     {
         this->_detector->detect(img_, tgts_);
-        this->_sort_impl->update(tgts_);
+        for (auto target : tgts_.targets)
+        {
+            if (target.category_id == 0)
+            {
+                person_tgts.targets.push_back(target);
+            }
+        }
+        this->_sort_impl->update(person_tgts);
     }
+    return person_tgts;
 }
 
 void MultipleObjectTracker::init(CommonObjectDetector* detector_)
@@ -210,22 +219,27 @@ void SORT::update(TargetsInFrame& tgts)
             
             tracklet.age = 0;
             tracklet.hits = 1;
-            tracklet.misses = 0;
+            //tracklet.misses = 0;
             tracklet.frame_id = tgts.frame_id;
             tracklet.category_id = tgts.targets[i].category_id;
-            tracklet.tentative = true;
-            
+            if (tgts.frame_id == 0)
+            {
+                tracklet.tentative = false;
+            }
+            else
+            {
+                tracklet.tentative = true;
+            }
             // initate the motion
             pair<Matrix<double, 8, 1>, Matrix<double, 8, 8> > motion = kf.initiate(tracklet.bbox);
             tracklet.mean = motion.first;
             tracklet.covariance = motion.second;
             
             this->_tracklets.push_back(tracklet);
-        }
+    }
     }
     else
     {
-        // cout << "frame id:" << tgts.frame_id << endl;
         for (int i=0; i<tgts.targets.size(); i++)
         {
             tgts.targets[i].tracked_id = 0;
@@ -242,7 +256,7 @@ void SORT::update(TargetsInFrame& tgts)
             tracklet.mean = motion.first;
             tracklet.covariance = motion.second;    
         }
-        
+
         // Match the detections to the existing tracklets 
         vector<vector<double> > iouMatrix(this->_tracklets.size(), vector<double> (tgts.targets.size(), 0));
         for (int i=0; i<this->_tracklets.size(); i++)
@@ -278,18 +292,15 @@ void SORT::update(TargetsInFrame& tgts)
         std::vector <vector<double>> ().swap(iouMatrix);
         for (int i=0; i<tgts.targets.size(); i++)
         { 
-            // cout << "match_det: index: " << i << " value: " << match_det[i] << endl;
             if (match_det[i] == -1)
             {
-                // cout << "create new tracklet." << endl;
                 sv::Box box;
                 tgts.targets[i].getBox(box);
                 Tracklet tracklet;
                 tracklet.id = ++ this->_next_tracklet_id;
-                tracklet.bbox << box.x1+(box.x2-box.x1)/2, (double)(box.y1+(box.y2-box.y1)/2), box.x2-box.x1, box.y2-box.y1;
+                tracklet.bbox << box.x1+(box.x2-box.x1)/2, (double)(box.y1+(box.y2-box.y1)/2), box.x2-box.x1, box.y2-box.y1; // c_x, c_y, w, h
                 tracklet.age = 0;
                 tracklet.hits = 1;
-                tracklet.misses = 0;
                 tracklet.frame_id = tgts.frame_id;
                 tracklet.category_id = tgts.targets[i].category_id;
                 tracklet.tentative = true;
@@ -320,7 +331,7 @@ void SORT::update(TargetsInFrame& tgts)
             {
                 tracklet.tentative = false;
             }
-            if ((tgts.frame_id-tracklet.frame_id <= _max_age) || (!tracklet.tentative && tracklet.frame_id == tgts.frame_id))
+            if ((tgts.frame_id-tracklet.frame_id <= _max_age) && !(tracklet.tentative && tracklet.frame_id != tgts.frame_id))
             {
                 _new_tracklets.push_back(tracklet);
             } 
@@ -456,9 +467,6 @@ vector<pair<int, int> > SORT::_hungarian(vector<vector<double> > costMatrix)
     std::vector<std::pair<int, int>> assignmentPairs;
     for (size_t row = 0; row < numRows; ++row) {
         int col = rowAssignment[row];
-        //if (col != -1) {
-          //  assignmentPairs.emplace_back(row, col);
-       // }
         if (col != -1) {
             if (col >= numCols) {
                 col = -1;

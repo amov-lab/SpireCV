@@ -116,7 +116,7 @@ void Camera::openImpl()
     camera_url << "rtspsrc location = rtsp://user:0000@" << this->_ip << ":" << this->_port
                << "/cam/realmonitor?channel=1&subtype=0 latency=100 ! \
                application/x-rtp,media=video ! rtph265depay ! parsebin ! \
-               nvv4l2decoder ! nvvidconv flip-method=4 ! \
+               nvv4l2decoder ! nvvidconv ! \
                video/x-raw,format=(string)BGRx,width=(int)"
                << this->_width << ",height=(int)" << this->_height << " ! videoconvert ! video/x-raw,format=(string)BGR ! \
                appsink sync=false";

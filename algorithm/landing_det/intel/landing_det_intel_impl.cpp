@@ -1,6 +1,7 @@
 #include "landing_det_intel_impl.h"
 #include <cmath>
 #include <fstream>
+#include "sv_util.h"
 
 #define SV_MODEL_DIR "/SpireCV/models/"
 #define SV_ROOT_DIR "/SpireCV/"
@@ -27,7 +28,7 @@ namespace sv
 #ifdef WITH_INTEL
     std::string onnx_model_fn = get_home() + SV_MODEL_DIR + "LandingMarker.onnx";
     std::vector<std::string> files;
-    _list_dir(get_home() + SV_MODEL_DIR, files, "-online.onnx", "Int-LandingMarker-resnet34");
+    list_dir(get_home() + SV_MODEL_DIR, files, "-online.onnx", "Int-LandingMarker-resnet34");
     if (files.size() > 0)
     {
       std::sort(files.rbegin(), files.rend(), _comp_str_lesser);

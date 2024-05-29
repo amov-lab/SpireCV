@@ -5,7 +5,7 @@
 #include <stdio.h>
 #define SERV_PORT 20166
 
-typedef unsigned char byte;
+
 using namespace std;
 
 
@@ -23,9 +23,9 @@ int main(int argc, char *argv[]) {
 
 
   int upd_msg_len = 1024 * 6;  // max_objects = 100
-  byte upd_msg[upd_msg_len];
+  unsigned char upd_msg[upd_msg_len];
   int msg_queue_len = 1024 * 1024;  // 1M
-  byte msg_queue[msg_queue_len];
+  unsigned char msg_queue[msg_queue_len];
 
   int addr_len = sizeof(struct sockaddr_in);
   int start_index = 0, end_index = 0;
@@ -63,21 +63,21 @@ cout << n << ", " << start_index << ", " << end_index << endl;
           if (end_index - i >= ilen + 2 && msg_queue[i+ilen] == 0xFB && msg_queue[i+ilen+1] == 0xFD)
           {
             cout << "FOUND 0xFAFC & 0xFBFD" << endl;
-            byte* msg_type = reinterpret_cast<byte*>(&msg_queue[i+2]);
+            unsigned char* msg_type = reinterpret_cast<unsigned char*>(&msg_queue[i+2]);
             cout << "Type: " << (int) *msg_type << endl;
             unsigned short* year = reinterpret_cast<unsigned short*>(&msg_queue[i+7]);
-            byte* month = reinterpret_cast<byte*>(&msg_queue[i+9]);
-            byte* day = reinterpret_cast<byte*>(&msg_queue[i+10]);
-            byte* hour = reinterpret_cast<byte*>(&msg_queue[i+11]);
-            byte* minute = reinterpret_cast<byte*>(&msg_queue[i+12]);
-            byte* second = reinterpret_cast<byte*>(&msg_queue[i+13]);
+            unsigned char* month = reinterpret_cast<unsigned char*>(&msg_queue[i+9]);
+            unsigned char* day = reinterpret_cast<unsigned char*>(&msg_queue[i+10]);
+            unsigned char* hour = reinterpret_cast<unsigned char*>(&msg_queue[i+11]);
+            unsigned char* minute = reinterpret_cast<unsigned char*>(&msg_queue[i+12]);
+            unsigned char* second = reinterpret_cast<unsigned char*>(&msg_queue[i+13]);
             unsigned short* millisecond = reinterpret_cast<unsigned short*>(&msg_queue[i+14]);
             cout << "Time: " << *year << "-" << (int) *month << "-" << (int) *day << " " << (int) *hour << ":" << (int) *minute << ":" << (int) *second << " " << *millisecond << endl;
             
-            byte* index_d1 = reinterpret_cast<byte*>(&msg_queue[i+16]);
-            byte* index_d2 = reinterpret_cast<byte*>(&msg_queue[i+17]);
-            byte* index_d3 = reinterpret_cast<byte*>(&msg_queue[i+18]);
-            byte* index_d4 = reinterpret_cast<byte*>(&msg_queue[i+19]);
+            unsigned char* index_d1 = reinterpret_cast<unsigned char*>(&msg_queue[i+16]);
+            unsigned char* index_d2 = reinterpret_cast<unsigned char*>(&msg_queue[i+17]);
+            unsigned char* index_d3 = reinterpret_cast<unsigned char*>(&msg_queue[i+18]);
+            unsigned char* index_d4 = reinterpret_cast<unsigned char*>(&msg_queue[i+19]);
             int mp = i+20;
             if ((*index_d4) & 0x01 == 0x01)
             {
@@ -152,13 +152,13 @@ cout << n << ", " << start_index << ", " << end_index << endl;
             }
             for (int j=0; j<n_objects; j++)
             {
-              byte* index_f1 = reinterpret_cast<byte*>(&msg_queue[mp]);
+              unsigned char* index_f1 = reinterpret_cast<unsigned char*>(&msg_queue[mp]);
               mp++;
-              byte* index_f2 = reinterpret_cast<byte*>(&msg_queue[mp]);
+              unsigned char* index_f2 = reinterpret_cast<unsigned char*>(&msg_queue[mp]);
               mp++;
-              byte* index_f3 = reinterpret_cast<byte*>(&msg_queue[mp]);
+              unsigned char* index_f3 = reinterpret_cast<unsigned char*>(&msg_queue[mp]);
               mp++;
-              byte* index_f4 = reinterpret_cast<byte*>(&msg_queue[mp]);
+              unsigned char* index_f4 = reinterpret_cast<unsigned char*>(&msg_queue[mp]);
               mp++;
               if ((*index_f4) & 0x01 == 0x01 && (*index_f4) & 0x02 == 0x02)
               {

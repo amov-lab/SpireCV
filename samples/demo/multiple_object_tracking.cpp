@@ -34,9 +34,9 @@ int main(int argc, char *argv[]) {
     cv::resize(img, img, cv::Size(mot.image_width, mot.image_height));
 
     // 执行通用目标检测
-    mot.track(img, tgts);
+    sv::TargetsInFrame person_tgts = mot.track(img, tgts);
     // 可视化检测结果，叠加到img上
-    sv::drawTargetsInFrame(img, tgts);
+    sv::drawTargetsInFrame(img, person_tgts);
     
     // 显示检测结果img
     cv::imshow("img", img);
