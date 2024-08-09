@@ -116,6 +116,25 @@ protected:
   int _target;
 };
 
+class MonocularDepthEstimationBase : public CameraAlgorithm
+{
+public:
+  MonocularDepthEstimationBase();
+  ~MonocularDepthEstimationBase();
+  void predict(cv::Mat img_, TargetsInFrame& tgts_);
+  bool isParamsLoaded();
+  int getIndoorsOrOutdoors();
+protected:
+  virtual bool setupImpl();
+  virtual void predictImpl(
+    cv::Mat img_,
+    cv::Mat& mde_
+  );
+  void _load();
+  bool _params_loaded;
+  int _indoors_or_outdoors;
+  std::string _algorithm;
+};
 
 class CommonObjectDetectorBase : public CameraAlgorithm
 {

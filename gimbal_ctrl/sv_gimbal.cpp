@@ -509,6 +509,50 @@ void sv::Gimbal::setAngleRateEuler(double roll_rate, double pitch_rate, double y
     temp.yaw = yaw_rate;
     pdevTemp->setGimabalSpeed(temp);
 }
+void sv::Gimbal::attitudeCorrection(const GimbalQuaternionT &quaterion,
+                                    const GimbalVelocityT &speed,
+                                    const GimbalVelocityT &acc, void *extenData)
+{
+    amovGimbal::gimbal *pdevTemp = (amovGimbal::gimbal *)this->dev;
+    AMOV_GIMBAL_QUATERNION_T temp_q;
+    temp_q.q0 = quaterion.q0;
+    temp_q.q1 = quaterion.q1;
+    temp_q.q2 = quaterion.q2;
+    temp_q.q3 = quaterion.q3;
+
+    AMOV_GIMBAL_VELOCITY_T temp_v1, temp_v2;
+    temp_v1.x = speed.x;
+    temp_v1.y = speed.y;
+    temp_v1.z = speed.z;
+
+    temp_v2.x = acc.x;
+    temp_v2.y = acc.y;
+    temp_v2.z = acc.z;
+
+    pdevTemp->attitudeCorrection(temp_q, temp_v1, temp_v2, extenData);
+}
+
+void sv::Gimbal::attitudeCorrection(const GimbalPosT &pos,
+                                    const GimbalVelocityT &speed,
+                                    const GimbalVelocityT &acc, void *extenData)
+{
+    amovGimbal::gimbal *pdevTemp = (amovGimbal::gimbal *)this->dev;
+    AMOV_GIMBAL_VELOCITY_T temp_v1, temp_v2;
+    temp_v1.x = speed.x;
+    temp_v1.y = speed.y;
+    temp_v1.z = speed.z;
+
+    temp_v2.x = acc.x;
+    temp_v2.y = acc.y;
+    temp_v2.z = acc.z;
+
+    AMOV_GIMBAL_POS_T temp_p;
+    temp_p.pitch = pos.pitch;
+    temp_p.yaw = pos.yaw;
+    temp_p.roll = pos.roll;
+
+    pdevTemp->attitudeCorrection(temp_p, temp_v1, temp_v2, extenData);
+}
 
 sv::Gimbal::~Gimbal()
 {

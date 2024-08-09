@@ -78,6 +78,28 @@ namespace sv
     FLOWCONTROL_HARDWARE = 2,
   };
 
+  typedef struct
+  {
+    double q0;
+    double q1;
+    double q2;
+    double q3;
+  } GimbalQuaternionT;
+
+  typedef struct
+  {
+    double x; // or N
+    double y; // or E
+    double z; // or UP
+  } GimbalVelocityT;
+
+  typedef struct
+  {
+    double yaw;
+    double roll;
+    double pitch;
+  } GimbalPosT;
+
   static inline void emptyCallback(double &frameAngleRoll, double &frameAnglePitch, double &frameAngleYaw,
                                    double &imuAngleRoll, double &imuAnglePitch, double &imuAngleYaw,
                                    double &fovX, double &fovY)
@@ -165,6 +187,12 @@ namespace sv
     bool takePhoto();
     bool takeVideo(int state);
     int getVideoState();
+    void attitudeCorrection(const GimbalQuaternionT &quaterion,
+                                    const GimbalVelocityT &speed,
+                                    const GimbalVelocityT &acc, void *extenData);
+    void attitudeCorrection(const GimbalPosT &pos,
+                                    const GimbalVelocityT &speed,
+                                    const GimbalVelocityT &acc, void *extenData);
 
     //! Set gimbal angles
     /*!

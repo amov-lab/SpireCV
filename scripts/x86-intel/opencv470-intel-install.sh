@@ -60,7 +60,19 @@ cmake -D CMAKE_BUILD_TYPE=Release \
       -D WITH_CUDA=OFF \
       -D OPENCV_ENABLE_NONFREE=ON \
       -D CMAKE_INSTALL_PREFIX=/usr/local \
-      -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib-4.7.0/modules ..
+      -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib-4.7.0/modules \
+      -D BUILD_PNG=ON \
+      -D BUILD_JASPER=ON \
+      -D BUILD_JPEG=ON \
+      -D BUILD_TIFF=ON \
+      -D BUILD_ZLIB=ON \
+      -D WITH_JPEG=ON \
+      -D WITH_PNG=ON \
+      -D WITH_JASPER=ON \
+      -D WITH_TIFF=ON \
+      -D WITH_TBB=ON \
+      -D WITH_ZLIB=ON \
+      -D WITH_OPENCL=ON ..
 
 make -j2
 sudo make install

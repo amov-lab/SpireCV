@@ -20,9 +20,9 @@
 uint32_t GX40GimbalDriver::setGimabalPos(const AMOV_GIMBAL_POS_T &pos)
 {
     carrierStateMutex.lock();
-    targetPos[0] = (int16_t)(-pos.roll / 0.01f);
+    targetPos[0] = (int16_t)(pos.roll / 0.01f);
     targetPos[1] = (int16_t)(-pos.pitch / 0.01f);
-    targetPos[2] = (int16_t)(-pos.yaw / 0.01f);
+    targetPos[2] = (int16_t)(pos.yaw / 0.01f);
     carrierStateMutex.unlock();
     return pack(GX40::GIMBAL_CMD_MODE_EULER, nullptr, 0);
 }
@@ -38,9 +38,9 @@ uint32_t GX40GimbalDriver::setGimabalPos(const AMOV_GIMBAL_POS_T &pos)
 uint32_t GX40GimbalDriver::setGimabalSpeed(const AMOV_GIMBAL_POS_T &speed)
 {
     carrierStateMutex.lock();
-    targetPos[0] = (int16_t)(-speed.roll / 0.1f);
+    targetPos[0] = (int16_t)(speed.roll / 0.1f);
     targetPos[1] = (int16_t)(-speed.pitch / 0.1f);
-    targetPos[2] = (int16_t)(-speed.yaw / 0.1f);
+    targetPos[2] = (int16_t)(speed.yaw / 0.1f);
     carrierStateMutex.unlock();
 
     return pack(GX40::GIMBAL_CMD_MODE_FOLLOW, nullptr, 0);

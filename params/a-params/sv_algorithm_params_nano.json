@@ -126,7 +126,9 @@
         "reid_match_thres": 2.0,
         "iou_thres": 0.5,
         "max_age": 10,
-        "min_hits": 3
+        "min_hits": 3,
+        "frame_rate": 30,
+        "track_buffer": 30
     },
     "LandingMarkerDetector": {
         "labels": ["x", "h"],

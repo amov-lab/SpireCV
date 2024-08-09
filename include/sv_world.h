@@ -8,6 +8,7 @@
 #include "sv_mot.h"
 #include "sv_color_line.h"
 #include "sv_veri_det.h"
+#include "sv_depth_est.h"
 #include "sv_video_input.h"
 #include "sv_video_output.h"
 

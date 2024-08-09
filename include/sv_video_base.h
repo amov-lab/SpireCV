@@ -218,6 +218,9 @@ public:
   //! 当前光照强度，Lux
   double illumination;
 
+  //! depth_data, from MonocularDepthEstimation
+  cv::Mat depth_data;
+
   //! Whether the detection FPS can be obtained.
   bool has_fps;
   //! Whether the FOV can be obtained.

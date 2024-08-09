@@ -24,6 +24,9 @@ personcar_model2_fn=${root_dir}/${personcar_model2}
 landing_model1="LandingMarker-resnet34-v230228.onnx"
 landing_model1_fn=${root_dir}/${landing_model1}
 
+veri_model1="veri.onnx"
+veri_model1_fn=${root_dir}/${veri_model1}
+
 SpireCVDet -s ${coco_model1_fn} ${root_dir}/COCO.engine 80 s
 SpireCVDet -s ${coco_model2_fn} ${root_dir}/COCO_HD.engine 80 s6
 SpireCVSeg -s ${coco_model3_fn} ${root_dir}/COCO_SEG.engine 80 s
@@ -36,6 +39,7 @@ SpireCVDet -s ${personcar_model2_fn} ${root_dir}/PersonCar_HD.engine 8 s6
 
 cd /usr/src/tensorrt/bin/
 ./trtexec --explicitBatch --onnx=${landing_model1_fn} --saveEngine=${root_dir}/LandingMarker.engine --fp16
+./trtexec --explicitBatch --onnx=${veri_model1_fn} --saveEngine=${root_dir}/veri.engine --shapes=input:2x3x224x224 --fp16
 
 echo "export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH" >> ~/.bashrc
 

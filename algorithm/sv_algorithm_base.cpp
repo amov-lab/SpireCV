@@ -845,6 +845,69 @@ void SingleObjectTrackerBase::_load()
   setupImpl();
 }
 
+MonocularDepthEstimationBase::MonocularDepthEstimationBase()
+{
+  this->_params_loaded = false;
+}
+MonocularDepthEstimationBase::~MonocularDepthEstimationBase()
+{
+}
+bool MonocularDepthEstimationBase::isParamsLoaded()
+{
+  return this->_params_loaded;
+}
+bool MonocularDepthEstimationBase::setupImpl()
+{
+  return false;
+}
+int MonocularDepthEstimationBase::getIndoorsOrOutdoors()
+{
+  return this->_indoors_or_outdoors;
+}
+void MonocularDepthEstimationBase::_load()
+{
+  JsonValue all_value;
+  JsonAllocator allocator;
+  _load_all_json(this->alg_params_fn, all_value, allocator);
+
+  JsonValue mondepest_params_value;
+  _parser_algorithm_params("MonocularDepthEstimation", all_value, mondepest_params_value);
+
+  // std::cout << _get_home() + "/.spire/" << std::endl;
+  // stuff we know about the network and the input/output blobs
+  this->_indoors_or_outdoors = 0;
+
+  for (auto i : mondepest_params_value)
+  {
+    if ("indoors_or_outdoors" == std::string(i->key))
+    {
+      this->_indoors_or_outdoors = i->value.toNumber();
+      //std::cout << "indoors_or_outdoors Load Sucess!" << std::endl;
+    }
+  }
+  setupImpl();
+}
+void MonocularDepthEstimationBase::predict(cv::Mat img_, TargetsInFrame& tgts_)
+{
+   if (!this->_params_loaded)
+  {
+    this->_load();
+    this->_params_loaded = true;
+  }
+
+  tgts_.setSize(img_.cols, img_.rows);
+  tgts_.setFOV(this->fov_x, this->fov_y);
+  auto t1 = std::chrono::system_clock::now();
+  tgts_.setFPS(1000.0 / std::chrono::duration_cast<std::chrono::milliseconds>(t1 - this->_t0).count());
+  this->_t0 = std::chrono::system_clock::now();
+  tgts_.setTimeNow();
+
+  predictImpl(img_, tgts_.depth_data);
+}
+
+void MonocularDepthEstimationBase::predictImpl(cv::Mat img_, cv::Mat& mde_)
+{
+}
 
 CommonObjectDetectorBase::CommonObjectDetectorBase() // : CameraAlgorithm()
 {

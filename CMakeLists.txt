@@ -83,9 +83,12 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/common_det/cuda
   ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/landing_det/cuda
   ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/sot/ocv470
+  ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/mot/sort
+  ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/mot/bytetrack
   ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/color_line
   ${CMAKE_CURRENT_SOURCE_DIR}/video_io
   ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/veri/cuda
+  ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/mde/cuda
   ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/ellipse_det
   ${CMAKE_CURRENT_SOURCE_DIR}/utils
 )
@@ -127,6 +130,7 @@ set(
   include/sv_mot.h
   include/sv_color_line.h
   include/sv_veri_det.h
+  include/sv_depth_est.h
   include/sv_video_input.h
   include/sv_video_output.h
   include/sv_world.h
@@ -172,6 +176,7 @@ set(spirecv_SRCS
   algorithm/sot/sv_sot.cpp
   algorithm/mot/sv_mot.cpp
   algorithm/color_line/sv_color_line.cpp
+  algorithm/mde/sv_depth_est.cpp
 )
 
 file(GLOB ALG_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/sot/ocv470/*.cpp)
@@ -181,6 +186,10 @@ list(APPEND spirecv_SRCS ${ALG_SRC_FILES})
 file(GLOB ALG_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/video_io/*.cpp)
 list(APPEND spirecv_SRCS ${ALG_SRC_FILES})
 file(GLOB ALG_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/utils/*.cpp)
+list(APPEND spirecv_SRCS ${ALG_SRC_FILES})
+file(GLOB ALG_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/mot/sort/*.cpp)
+list(APPEND spirecv_SRCS ${ALG_SRC_FILES})
+file(GLOB ALG_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/mot/bytetrack/*.cpp)
 list(APPEND spirecv_SRCS ${ALG_SRC_FILES})
 
 if(USE_CUDA)
@@ -192,6 +201,8 @@ if(USE_CUDA)
   file(GLOB ALG_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/landing_det/cuda/*.cpp)
   list(APPEND spirecv_SRCS ${ALG_SRC_FILES})
   file(GLOB ALG_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/veri/cuda/*.cpp)
+  list(APPEND spirecv_SRCS ${ALG_SRC_FILES})
+  file(GLOB ALG_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/mde/cuda/*.cpp)
   list(APPEND spirecv_SRCS ${ALG_SRC_FILES})
 endif()
 
@@ -311,6 +322,8 @@ add_executable(VideoSaving samples/demo/video_saving.cpp)
 target_link_libraries(VideoSaving sv_world)
 add_executable(VERI samples/demo/veri.cpp)
 target_link_libraries(VERI sv_world)
+add_executable(MonocularDepthEstimation samples/demo/mon_depth_estimation.cpp)
+target_link_libraries(MonocularDepthEstimation sv_world)
 add_executable(VideoStreaming samples/demo/video_streaming.cpp)
 target_link_libraries(VideoStreaming sv_world)
 add_executable(GimbalClickedTracking samples/demo/gimbal_detection_with_clicked_tracking.cpp)

@@ -159,13 +159,23 @@ void Camera::openImpl()
       this->_fps = 30;
     }
 
-#if defined(PLATFORM_X86_CUDA) || defined(PLATFORM_X86_INTEL)
+#if defined(PLATFORM_X86_CUDA)
     sprintf(pipe, "rtspsrc location=%s?W=%d&H=%d&FPS=%d latency=100 ! \
                    application/x-rtp,media=video ! rtph264depay ! parsebin ! avdec_h264 ! \
                    videoconvert ! appsink sync=false", 
                    this->_rtsp_url.c_str(), this->_width, this->_height, this->_fps);
     this->_cap.open(pipe, cv::CAP_GSTREAMER);
 #endif
+#if defined(PLATFORM_X86_INTEL)
+    sprintf(pipe, "rtspsrc location=%s?W=%d&H=%d&FPS=%d latency=100 ! \
+                   application/x-rtp,media=video ! rtph264depay ! parsebin ! vaapih264dec ! \
+                   vaapipostproc ! video/x-raw,format=YV12,framerate=25/1 ! videoconvert ! videorate ! video/x-raw,framerate=25/1 ! \
+                   appsink sync=false",
+                   this->_rtsp_url.c_str(), this->_width, this->_height, this->_fps);
+    this->_cap.open(pipe, cv::CAP_GSTREAMER);
+#endif
+
+
 #ifdef PLATFORM_JETSON
     sprintf(pipe, "rtspsrc location=%s?W=%d&H=%d&FPS=%d latency=100 ! application/x-rtp,media=video ! rtph264depay ! parsebin ! nvv4l2decoder enable-max-performancegst=1 ! nvvidconv ! video/x-raw,format=(string)BGRx ! videoconvert ! appsink sync=false", this->_rtsp_url.c_str(), this->_width, this->_height, this->_fps);
     this->_cap.open(pipe, cv::CAP_GSTREAMER);

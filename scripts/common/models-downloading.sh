@@ -34,6 +34,14 @@ track_model5_fn=${root_dir}/${track_model5}
 landing_model1="LandingMarker-resnet34-v230228.onnx"
 landing_model1_fn=${root_dir}/${landing_model1}
 
+veri_model1="veri.onnx"
+veri_model1_fn=${root_dir}/${veri_model1}
+
+mde_model1="MonDepthEst_In.engine"
+mde_model1_fn=${root_dir}/${mde_model1}
+
+mde_model2="MonDepthEst_Out.engine"
+mde_model2_fn=${root_dir}/${mde_model2}
 
 if [ ! -d ${root_dir} ]; then
   echo -e "\033[32m[INFO]: ${root_dir} not exist, creating it ... \033[0m"
@@ -77,3 +85,17 @@ if [ ! -f ${landing_model1_fn} ]; then
   wget -O ${landing_model1_fn} ${root_server}/install/${landing_model1}
 fi
 
+if [ ! -f ${veri_model1_fn} ]; then
+  echo -e "\033[32m[INFO]: ${veri_model1_fn} not exist, downloading ... \033[0m"
+  wget -O ${veri_model1_fn} ${root_server}/install/${veri_model1}
+fi
+
+if [ ! -f ${mde_model1_fn} ]; then
+  echo -e "\033[32m[INFO]: ${mde_model1_fn} not exist, downloading ... \033[0m"
+  wget -O ${mde_model1_fn} ${root_server}/install/${mde_model1}
+fi
+
+if [ ! -f ${mde_model2_fn} ]; then
+  echo -e "\033[32m[INFO]: ${mde_model2_fn} not exist, downloading ... \033[0m"
+  wget -O ${mde_model2_fn} ${root_server}/install/${mde_model2}
+fi
