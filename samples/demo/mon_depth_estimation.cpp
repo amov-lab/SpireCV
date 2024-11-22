@@ -28,7 +28,6 @@ int main(int argc, char *argv[])
     // 读取一帧图像到img
     cap.read(img);
     cv::resize(img, img, cv::Size(mde.image_width, mde.image_height));
-    cv::imshow("img", img);
 
     // 执行MonocularDepthEstimation
     mde.predict(img, tgts);

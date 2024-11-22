@@ -74,7 +74,7 @@ cmake -D CMAKE_BUILD_TYPE=Release \
       -D WITH_ZLIB=ON \
       -D WITH_OPENCL=ON ..
 
-make -j2
+make -j4
 sudo make install
 
 cd

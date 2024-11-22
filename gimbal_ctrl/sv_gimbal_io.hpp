@@ -233,6 +233,73 @@ namespace sv
             close();
         }
     };
+
+    class UDP2 : public amovGimbal::IOStreamBase
+    {
+    private:
+        int ScoketFd;
+        sockaddr_in ScoketAddr;
+
+    public:
+        virtual bool open()
+        {
+            return true;
+        }
+        virtual bool close()
+        {
+
+            return true;
+        }
+        virtual bool isOpen()
+        {
+            return true;
+        }
+        virtual bool isBusy()
+        {
+            return false;
+        }
+        virtual uint32_t inPutBytes(IN uint8_t *byte)
+        {
+            int count = recv(ScoketFd, (char *)byte, 65536, 0);
+
+            return count;
+        }
+        virtual uint32_t outPutBytes(IN uint8_t *byte, uint32_t lenght)
+        {
+            return sendto(ScoketFd, (const char *)byte, lenght, 0,
+                          (struct sockaddr *)&ScoketAddr, sizeof(ScoketAddr));
+        }
+
+        UDP2(const std::string &remoteAddr, const uint16_t remotePort)
+        {
+            if ((ScoketFd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+            {
+                scoketClose(ScoketFd);
+                throw std::runtime_error("scoket creat failed");
+            }
+            memset(&ScoketAddr, 0, sizeof(ScoketAddr));
+
+            ScoketAddr.sin_family = AF_INET;
+            ScoketAddr.sin_addr.s_addr = inet_addr(remoteAddr.c_str());
+            ScoketAddr.sin_port = htons(remotePort);
+
+            if (ScoketAddr.sin_addr.s_addr == INADDR_NONE ||
+                ScoketAddr.sin_addr.s_addr == INADDR_ANY)
+            {
+                scoketClose(ScoketFd);
+
+                throw std::runtime_error("scoket addr errr");
+            }
+            int len = sizeof(ScoketAddr);
+
+            connect(ScoketFd, (struct sockaddr *)&ScoketAddr, len);
+        }
+        ~UDP2()
+        {
+            close();
+        }
+    };
+
 }
 
 #endif

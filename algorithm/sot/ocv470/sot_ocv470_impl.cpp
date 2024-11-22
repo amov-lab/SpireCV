@@ -71,6 +71,7 @@ bool SingleObjectTrackerOCV470Impl::ocv470Setup(SingleObjectTrackerBase* base_)
     nano_params.backbone = samples::findFile(backbone);
     nano_params.neckhead = samples::findFile(neckhead);
     nano_params.backend = this->_backend;
+    //nano_params.target = cv::dnn::DNN_TARGET_OPENCL;
     nano_params.target = this->_target;
 
     _nano = TrackerNano::create(nano_params);

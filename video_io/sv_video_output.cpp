@@ -10,8 +10,8 @@
 #include "x86_cuda/bs_push_streamer.h"
 #include "x86_cuda/bs_video_saver.h"
 #elif defined(PLATFORM_X86_INTEL)
-#include "x86_intel/bs_push_streamer.h"
-#include "x86_intel/bs_video_saver.h"
+#include "streamer_gstreamer_impl.h"
+#include "writer_gstreamer_impl.h"
 #endif
 #endif
 

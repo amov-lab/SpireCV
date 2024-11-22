@@ -30,7 +30,8 @@ namespace sv
             {GimbalType::G1, {"G1", GimbalLink::SERIAL}},
             {GimbalType::Q10f, {"Q10f", GimbalLink::SERIAL}},
             {GimbalType::AT10, {"AT10", GimbalLink::SERIAL | GimbalLink::ETHERNET_TCP}},
-            {GimbalType::GX40, {"GX40", GimbalLink::SERIAL | GimbalLink::ETHERNET_TCP | GimbalLink::ETHERNET_UDP}}};
+            {GimbalType::GX40, {"GX40", GimbalLink::SERIAL | GimbalLink::ETHERNET_TCP | GimbalLink::ETHERNET_UDP}},
+            {GimbalType::SU17, {"SU17", GimbalLink::ETHERNET_UDP2}}};
 
     /**
      * The function `svGimbalType2Str` converts a `GimbalType` enum value to its corresponding string
@@ -214,6 +215,14 @@ void *sv::Gimbal::creatIO(sv::Gimbal *dev)
             key.second = (void *)udp;
             IOList.insert(key);
         }
+        else if (dev->m_gimbal_link == sv::GimbalLink::ETHERNET_UDP2)
+        {
+            UDP2 *udp2;
+            udp2 = new UDP2(dev->m_net_ip, dev->m_net_recv_port);
+            key.first = dev->m_net_ip;
+            key.second = (void *)udp2;
+            IOList.insert(key);
+        }
     }
     else
     {
@@ -260,6 +269,7 @@ bool sv::Gimbal::open(PStateInvoke callback)
         driverName = sv::svGimbalType2Str(this->m_gimbal_type);
         this->dev = new amovGimbal::gimbal(driverName, (amovGimbal::IOStreamBase *)this->IO);
         amovGimbal::gimbal *pdevTemp = (amovGimbal::gimbal *)this->dev;
+
         pdevTemp->startStack();
         m_callback = callback;
         pdevTemp->parserAuto(sv::Gimbal::gimbalUpdataCallback, this);

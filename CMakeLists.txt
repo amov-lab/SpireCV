@@ -25,7 +25,7 @@ else()
   elseif(PLATFORM STREQUAL "X86_INTEL")
     add_definitions(-DPLATFORM_X86_INTEL)
     option(USE_INTEL "BUILD WITH INTEL." ON)
-    option(USE_FFMPEG "BUILD WITH FFMPEG." ON)
+    option(USE_GSTREAMER "BUILD WITH GSTREAMER." ON)
   else()
     message(FATAL_ERROR "UNSUPPORTED PLATFORM!")
   endif()
@@ -75,6 +75,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl/driver/src/AT10
   ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl/driver/src/Q10f
   ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl/driver/src/GX40
+  ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl/driver/src/SU17-G
   ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl/driver/src
   ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl
   ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/common_det/intel
@@ -153,6 +154,8 @@ list(APPEND driver_SRCS ${DRV_LIB_FILES})
 file(GLOB DRV_LIB_FILES ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl/driver/src/Q10f/*.cpp)
 list(APPEND driver_SRCS ${DRV_LIB_FILES})
 file(GLOB DRV_LIB_FILES ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl/driver/src/GX40/*.cpp)
+list(APPEND driver_SRCS ${DRV_LIB_FILES})
+file(GLOB DRV_LIB_FILES ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl/driver/src/SU17-G/*.cpp)
 list(APPEND driver_SRCS ${DRV_LIB_FILES})
 file(GLOB DRV_LIB_FILES ${CMAKE_CURRENT_SOURCE_DIR}/gimbal_ctrl/driver/src/*.cpp)
 list(APPEND driver_SRCS ${DRV_LIB_FILES})
@@ -330,6 +333,8 @@ add_executable(GimbalClickedTracking samples/demo/gimbal_detection_with_clicked_
 target_link_libraries(GimbalClickedTracking sv_world)
 add_executable(GimbalLandingMarkerDetection samples/demo/gimbal_landing_marker_detection.cpp)
 target_link_libraries(GimbalLandingMarkerDetection sv_world)
+add_executable(GimbalArucoDetection samples/demo/gimbal_aruco_detection.cpp)
+target_link_libraries(GimbalArucoDetection sv_world)
 add_executable(GimbalUdpDetectionInfoSender samples/demo/gimbal_udp_detection_info_sender.cpp)
 target_link_libraries(GimbalUdpDetectionInfoSender sv_world)
 
@@ -435,6 +440,7 @@ set(SV_LIBRARIES
   @SV_INSTALL_PREFIX@/lib/libsv_gimbal.so
   ${OpenCV_LIBS}
   rt pthread
+  gstrtspserver-1.0
   @FFMPEG_LIBS@ fmt
 )
 ]])

@@ -62,6 +62,9 @@ bool VideoStreamerGstreamerImpl::gstreamerSetup(VideoStreamerBase* base_)
 
 #ifdef PLATFORM_JETSON
   sprintf(str_buf, "appsrc is-live=true ! videoconvert ! nvvidconv ! video/x-raw(memory:NVMM) ! nvv4l2h264enc insert-sps-pps=true bitrate=%d ! h264parse ! rtph264pay name=pay0 pt=96 ! udpsink host=127.0.0.1 port=%d async=false", bitrate * 1000000, media_port);  // omxh264enc
+#endif
+#ifdef PLATFORM_X86_INTEL
+  sprintf(str_buf, "appsrc is-live=true ! videoconvert ! vaapipostproc ! vaapih264enc bitrate=%d  rate-control=2 cabac=true dct8x8=true  ! h264parse config-interval=-1  ! rtph264pay name=pay0 pt=96 ! udpsink host=127.0.0.1 port=%d async=false", bitrate * 1024 , media_port);  // omxh264enc
 #else
   sprintf(str_buf, "appsrc is-live=true ! videoconvert ! x264enc bitrate=%d ! video/x-h264, stream-format=byte-stream ! rtph264pay name=pay0 pt=96 ! udpsink host=127.0.0.1 port=%d async=false", bitrate * 1000000, media_port);
 #endif

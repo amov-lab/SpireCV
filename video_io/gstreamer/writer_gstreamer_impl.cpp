@@ -25,6 +25,10 @@ bool VideoWriterGstreamerImpl::gstreamerSetup(VideoWriterBase* base_, std::strin
 #ifdef PLATFORM_JETSON
     std::string pipeline = "appsrc ! videoconvert ! nvvidconv ! video/x-raw(memory:NVMM) ! nvv4l2h264enc ! h264parse ! matroskamux ! filesink location=" + this->_file_path + file_name_ + ".avi";
     opend = this->_writer.open(pipeline, cv::VideoWriter::fourcc('m','p','4','v'), this->_fps, this->_image_size);
+#endif
+#ifdef PLATFORM_X86_INTEL
+    std::string pipeline = "appsrc  ! videoconvert ! vaapipostproc ! vaapih264enc !  h264parse  ! matroskamux ! filesink location=" + this->_file_path + file_name_ + ".avi";
+    opend = this->_writer.open(pipeline, cv::VideoWriter::fourcc('m','p','4','v'), this->_fps, this->_image_size);
 #else
     opend = this->_writer.open(this->_file_path + file_name_ + ".avi", cv::VideoWriter::fourcc('x','v','i','d'), this->_fps, this->_image_size);
 #endif

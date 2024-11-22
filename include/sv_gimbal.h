@@ -28,6 +28,7 @@ namespace sv
     Q10f,
     AT10,
     GX40,
+    SU17,
   };
   enum class GimbalLink : int
   {
@@ -35,6 +36,7 @@ namespace sv
     SERIAL = 0x01,
     ETHERNET_TCP = 0x02,
     ETHERNET_UDP = 0x04,
+    ETHERNET_UDP2 = 0x08,
   };
 
   constexpr GimbalLink operator|(GimbalLink a, GimbalLink b)
@@ -188,11 +190,11 @@ namespace sv
     bool takeVideo(int state);
     int getVideoState();
     void attitudeCorrection(const GimbalQuaternionT &quaterion,
-                                    const GimbalVelocityT &speed,
-                                    const GimbalVelocityT &acc, void *extenData);
+                            const GimbalVelocityT &speed,
+                            const GimbalVelocityT &acc, void *extenData);
     void attitudeCorrection(const GimbalPosT &pos,
-                                    const GimbalVelocityT &speed,
-                                    const GimbalVelocityT &acc, void *extenData);
+                            const GimbalVelocityT &speed,
+                            const GimbalVelocityT &acc, void *extenData);
 
     //! Set gimbal angles
     /*!

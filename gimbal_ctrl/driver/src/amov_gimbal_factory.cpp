@@ -1,5 +1,5 @@
 /*
- * @Description: 
+ * @Description:
  * @Author: L LC @amov
  * @Date: 2023-11-24 15:48:47
  * @LastEditors: L LC @amov
@@ -12,6 +12,7 @@
 #include "Q10f_gimbal_driver.h"
 #include "AT10_gimbal_driver.h"
 #include "GX40_gimbal_driver.h"
+#include "SU17_gimbal_driver.h"
 
 #include <map>
 #include <iterator>
@@ -26,7 +27,8 @@ namespace amovGimbalFactory
             {"G1", g1GimbalDriver::creat},
             {"Q10f", Q10fGimbalDriver::creat},
             {"AT10", AT10GimbalDriver::creat},
-            {"GX40", GX40GimbalDriver::creat}};
+            {"GX40", GX40GimbalDriver::creat},
+            {"SU17", su17GimbalDriver::creat}};
 
     /* The amovGimbalCreator class is a factory class that creates an instance of the amovGimbal class */
     // Factory used to create the gimbal instance
